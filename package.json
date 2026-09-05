@@ -31,7 +31,8 @@
     "test:coverage": "vitest run --coverage",
     "db:migrate": "prisma migrate dev --schema packages/database/prisma/schema.prisma",
     "db:migrate:deploy": "prisma migrate deploy --schema packages/database/prisma/schema.prisma",
-    "db:studio": "prisma studio --schema packages/database/prisma/schema.prisma"
+    "db:studio": "prisma studio --schema packages/database/prisma/schema.prisma",
+    "check:schema": "node scripts/check-schema.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

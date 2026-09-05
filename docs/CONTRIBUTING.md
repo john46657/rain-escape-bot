@@ -11,10 +11,14 @@ npm test
 ## Vor jedem Commit
 
 ```bash
-npm run typecheck   # muss fehlerfrei sein
+npm run typecheck      # muss fehlerfrei sein
 npm run lint
+npm run check:schema   # Prisma-Schema, laeuft ohne Netzwerk
 npm test
 ```
+
+Dieselben Schritte laufen in der CI (`.github/workflows/ci.yml`), zusaetzlich
+`prettier --check`, beide Produktions-Bundles und ein Startversuch der API.
 
 ## Grundsaetze
 

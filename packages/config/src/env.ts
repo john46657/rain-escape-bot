@@ -38,6 +38,10 @@ export const envSchema = z.object({
   DISCORD_SHARD_COUNT: z.coerce.number().int().positive().optional(),
 
   // ---- Persistenz ----
+  /**
+   * Nur informativ (Logs, Diagnose). Prisma liest den Provider NICHT aus der
+   * Umgebung — er steht als Literal in `schema.prisma` (Prisma-Fehler P1012).
+   */
   DATABASE_PROVIDER: z.enum(['postgresql', 'sqlite']).default('postgresql'),
   DATABASE_URL: z.string().default('postgresql://nexus:nexus@localhost:5432/nexus?schema=public'),
   REDIS_URL: z.string().default('redis://localhost:6379'),

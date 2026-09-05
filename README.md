@@ -215,6 +215,7 @@ npm run dev            # Bot, API und Dashboard parallel
 npm run typecheck      # Strenge TypeScript-Prüfung über alles
 npm run lint           # ESLint
 npm run format         # Prettier
+npm run check:schema   # Prisma-Schema offline prüfen (ohne Engines)
 npm test               # Vitest (60 Tests)
 npm run test:coverage  # mit Abdeckungsbericht
 npm run build          # Produktions-Bundles

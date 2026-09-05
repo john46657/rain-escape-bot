@@ -1,22 +1,26 @@
 // =============================================================================
 // NEXUS — Datenmodell
 // =============================================================================
-// Portabilitaets-Regeln fuer dieses Schema:
+// Zielsystem ist PostgreSQL. Das Schema bleibt trotzdem bewusst portabel,
+// damit ein Wechsel des Providers (z. B. SQLite fuer einen Einzelserver)
+// nur eine Zeilenaenderung ist und keine Modellumbauten erfordert:
 //
-//  1. KEINE nativen Enums. Das Schema muss auf PostgreSQL (Produktion) und
-//     SQLite (lokaler Dev-Modus ohne Docker) laufen; SQLite kennt keine Enums.
-//     Stattdessen: String-Spalten + zod-Validierung in `@nexus/shared`
-//     (siehe types/enums.ts). Die erlaubten Werte stehen jeweils im Kommentar.
-//  2. KEINE Scalar-Arrays (`String[]`) — von SQLite nicht unterstuetzt.
-//     Stattdessen JSON-Text-Spalten mit Helfern aus `@nexus/database`.
+//  1. KEINE nativen Enums. Stattdessen String-Spalten + zod-Validierung in
+//     `@nexus/shared` (siehe types/enums.ts). Die erlaubten Werte stehen
+//     jeweils im Kommentar der Spalte.
+//  2. KEINE Scalar-Arrays (`String[]`). Stattdessen JSON-Text-Spalten mit den
+//     Helfern `parseJson`/`stringifyJson` aus `@nexus/database`.
 //  3. KEINE `@db.*`-Attribute, da providerspezifisch.
 //  4. Jede Fremdschluessel-Spalte und jedes Abfragemuster hat einen Index
 //     (Regel 42: keine unnoetigen/langsamen Queries).
 //  5. Secrets werden ausschliesslich als Hash gespeichert (Regel 34/49).
+//
+// Hinweis: `provider` MUSS ein Literal sein. Prisma lehnt `env()` an dieser
+// Stelle ab (Fehler P1012) — nur `url` darf aus der Umgebung kommen.
 // =============================================================================
 
 datasource db {
-  provider = env("DATABASE_PROVIDER") // "postgresql" | "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -310,6 +314,8 @@ model Warning {
   createdAt   DateTime @default(now())
 
   @@index([guildId, targetId, active])
+  /// Wird beim Aufloesen eines Falls zu seinen Verwarnungen genutzt.
+  @@index([caseRef])
   @@index([expiresAt])
 }
 
@@ -451,6 +457,8 @@ model Ticket {
   messages TicketMessage[]
 
   @@unique([guildId, number])
+  /// Panels listen ihre Tickets — ohne Index waere das ein Vollscan.
+  @@index([panelId])
   @@index([guildId, status])
   @@index([openerId])
 }
@@ -831,6 +839,8 @@ model RobloxSession {
 
   @@index([gameId, joinedAt])
   @@index([robloxUserId])
+  /// Spielzeit je verknuepftem Discord-Konto.
+  @@index([accountId])
 }
 
 /// Eingehendes Roblox-Ereignis (Regel 21). `eventId` sichert Idempotenz.

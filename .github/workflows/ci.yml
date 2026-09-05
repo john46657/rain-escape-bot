@@ -48,6 +48,10 @@ jobs:
       - name: Formatierung pruefen
         run: npx prettier --check "**/*.{ts,tsx,md,json}"
 
+      - name: Prisma-Schema strukturell pruefen
+        # Laeuft ohne Netzwerk und ohne Prisma-Engines.
+        run: npm run check:schema
+
       - name: Tests
         run: npm test
 

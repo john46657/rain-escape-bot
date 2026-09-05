@@ -70,8 +70,17 @@ Kommandos.
 - fuer jeden Abfragepfad ein Index
 - Secrets ausschliesslich als Hash
 
-Diese Regeln halten das Schema zwischen PostgreSQL und SQLite portabel, ohne
-dass zwei Schemadateien gepflegt werden muessen.
+Diese Regeln halten das Schema portabel, ohne dass zwei Schemadateien gepflegt
+werden muessen. Der `provider` steht bewusst als Literal in `schema.prisma` —
+Prisma lehnt `env()` an dieser Stelle ab (Fehler P1012); nur `url` darf aus der
+Umgebung kommen.
+
+`npm run check:schema` prueft das Schema **ohne Netzwerk und ohne
+Prisma-Engines**: doppelte Modelle und Felder, Relationen auf unbekannte
+Modelle, fehlende Gegenseiten, `@@index`-Verweise ins Leere, fehlende
+Primaerschluessel, Fremdschluessel ohne Index sowie Verstoesse gegen die
+Portabilitaetsregeln. Damit bleibt das Datenmodell auch in abgeschotteten
+Umgebungen pruefbar, in denen `prisma validate` nicht laufen kann.
 
 ### Nebenlaeufigkeit
 
