@@ -3,7 +3,7 @@
  * Jeder Befehl prueft: NEXUS-Berechtigung -> Discord-Rechte -> Hierarchie -> Ausfuehrung.
  */
 import {
-  ChannelType, PermissionFlagsBits, SlashCommandBuilder, TextChannel, type GuildMember,
+  ChannelType, PermissionFlagsBits, SlashCommandBuilder, type GuildMember, type TextChannel,
 } from 'discord.js';
 import {
   MODERATION_PERMISSIONS, assertBotPermission, bulkDelete, embeds, requireConfirmation,

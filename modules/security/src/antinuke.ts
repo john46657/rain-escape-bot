@@ -14,7 +14,7 @@
  *    in dem Fall wird nur alarmiert, nicht bestraft.
  */
 import {
-  AuditLogEvent, type Guild, type GuildAuditLogsEntry, PermissionFlagsBits,
+  type AuditLogEvent, type Guild, type GuildAuditLogsEntry, PermissionFlagsBits,
 } from 'discord.js';
 import { embeds, writeAudit, type Services } from '@nexus/bot-core';
 import type { AntiNukeThresholds } from '@nexus/database';

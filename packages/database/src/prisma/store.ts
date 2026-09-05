@@ -9,7 +9,7 @@
  *  - `Guild.id` und `User.id` sind Discord-Snowflakes (siehe schema.prisma).
  */
 import { ConflictError, NotFoundError, PreconditionError, formatCaseId, retry } from '@nexus/shared';
-import { defaultGuildConfig, emptyXpProfile } from '../defaults.js';
+import { emptyXpProfile } from '../defaults.js';
 import type {
   AchievementEntity, AnalyticsSnapshotEntity, ApiKeyEntity, AuditLogEntity, AutomationEntity,
   BackupEntity, EconomyProfileEntity, GiveawayEntity, GuildConfigEntity, GuildEntity,

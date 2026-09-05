@@ -9,10 +9,10 @@
     "apps/*"
   ],
   "engines": {
-    "node": ">=20.10.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "npm run dev --workspace @nexus/api & npm run dev --workspace @nexus/dashboard",
+    "dev": "npm run dev:api & npm run dev:dashboard",
     "dev:bot": "npm run dev --workspace @nexus/bot",
     "dev:api": "npm run dev --workspace @nexus/api",
     "dev:dashboard": "npm run dev --workspace @nexus/dashboard",
@@ -25,9 +25,16 @@
     "db:generate": "npm run generate --workspace @nexus/database",
     "db:push": "npm run push --workspace @nexus/database",
     "db:seed": "npm run seed --workspace @nexus/database",
-    "bootstrap:dev": "npm run db:generate && npm run db:push && npm run db:seed"
+    "bootstrap:dev": "npm run db:generate && npm run db:push && npm run db:seed",
+    "deploy:commands": "npm run deploy:commands --workspace @nexus/bot",
+    "build:dashboard": "npm run build --workspace @nexus/dashboard",
+    "test:coverage": "vitest run --coverage",
+    "db:migrate": "prisma migrate dev --schema packages/database/prisma/schema.prisma",
+    "db:migrate:deploy": "prisma migrate deploy --schema packages/database/prisma/schema.prisma",
+    "db:studio": "prisma studio --schema packages/database/prisma/schema.prisma"
   },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
     "@types/node": "^22.10.2",
     "@typescript-eslint/eslint-plugin": "^8.19.0",
     "@typescript-eslint/parser": "^8.19.0",

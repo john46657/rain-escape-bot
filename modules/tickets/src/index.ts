@@ -257,11 +257,12 @@ const ticketCommand: SlashCommand = {
               emoji: CATEGORY_LABELS[value].emoji,
             })),
           );
-        await interaction.channel?.isTextBased() &&
-          (await (interaction.channel as GuildTextBasedChannel).send({
+        if (interaction.channel?.isTextBased()) {
+          await (interaction.channel as GuildTextBasedChannel).send({
             embeds: [embeds.primary(t('tickets.panelTitle'), t('tickets.panelDescription'))],
             components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
-          }));
+          });
+        }
         await interaction.reply({ embeds: [embeds.success('Panel erstellt.')], ephemeral: true });
         return;
       }

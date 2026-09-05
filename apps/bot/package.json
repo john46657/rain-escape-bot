@@ -6,10 +6,10 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js",
+    "start": "node ../../dist/bot.mjs",
     "shard": "tsx src/sharding.ts",
-    "deploy-commands": "tsx src/scripts/deploy-commands.ts",
-    "build": "node ../../scripts/build.mjs apps/bot/src/index.ts apps/bot/dist/index.js"
+    "build": "node ../../scripts/build.mjs apps/bot/src/index.ts dist/bot.mjs",
+    "deploy:commands": "tsx src/scripts/deploy-commands.ts"
   },
   "dependencies": {
     "@discordjs/rest": "^2.4.0",

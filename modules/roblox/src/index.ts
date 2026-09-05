@@ -1,6 +1,7 @@
 import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import {
-  embeds, requireConfirmation, truncate, writeAudit, type NexusModule, type SlashCommand,
+  embeds, requireConfirmation, truncate, writeAudit, type NexusModule, type Services,
+  type SlashCommand,
 } from '@nexus/bot-core';
 import { MINUTE, PreconditionError, discordTimestamp, uuid } from '@nexus/shared';
 import { VerificationService } from './verification.js';
@@ -377,7 +378,7 @@ const roblox: SlashCommand = {
  * funktioniert die Fernsteuerung auch ohne Open-Cloud-Zugang.
  */
 async function queueForGames(
-  ctx: { services: import('@nexus/bot-core').Services; interaction: { user: { id: string } } },
+  ctx: { services: Services; interaction: { user: { id: string } } },
   guildId: string,
   universeId: string | null,
   type: string,

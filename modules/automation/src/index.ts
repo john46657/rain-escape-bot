@@ -1,7 +1,6 @@
 import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { embeds, type NexusModule, type SlashCommand } from '@nexus/bot-core';
 import { discordTimestamp } from '@nexus/shared';
-import { AutomationEngine } from './engine.js';
 
 /**
  * Modul: Automation (Regel 30).

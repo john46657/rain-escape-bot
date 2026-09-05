@@ -6,8 +6,8 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js",
-    "build": "node ../../scripts/build.mjs apps/api/src/index.ts apps/api/dist/index.js"
+    "start": "node ../../dist/api.mjs",
+    "build": "node ../../scripts/build.mjs apps/api/src/index.ts dist/api.mjs"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",

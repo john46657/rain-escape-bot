@@ -1,0 +1,114 @@
+# ---------------------------------------------------------------------------
+# NEXUS — vollstaendiger Produktions-Stack (Regel 49)
+#
+#   cd docker && docker compose up -d
+#
+# Erwartet eine `.env` im Projektwurzelverzeichnis (siehe .env.example).
+# ---------------------------------------------------------------------------
+name: nexus
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nexus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nexus}
+      POSTGRES_DB: ${POSTGRES_DB:-nexus}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-nexus} -d ${POSTGRES_DB:-nexus}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Nicht nach aussen veroeffentlichen: nur das interne Netz greift zu.
+    expose:
+      - '5432'
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes', '--maxmemory-policy', 'noeviction']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    expose:
+      - '6379'
+
+  migrate:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    env_file: ../.env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-nexus}:${POSTGRES_PASSWORD:-nexus}@postgres:5432/${POSTGRES_DB:-nexus}?schema=public
+    # Schema anwenden, bevor Bot und API starten.
+    command: ['npx', 'prisma', 'migrate', 'deploy', '--schema', 'prisma/schema.prisma']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    env_file: ../.env
+    environment:
+      NODE_ENV: production
+      DEV_MODE: 'false'
+      DATABASE_URL: postgresql://${POSTGRES_USER:-nexus}:${POSTGRES_PASSWORD:-nexus}@postgres:5432/${POSTGRES_DB:-nexus}?schema=public
+      REDIS_URL: redis://redis:6379
+    ports:
+      - '4000:4000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  bot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.bot
+    env_file: ../.env
+    environment:
+      NODE_ENV: production
+      DEV_MODE: 'false'
+      DATABASE_URL: postgresql://${POSTGRES_USER:-nexus}:${POSTGRES_PASSWORD:-nexus}@postgres:5432/${POSTGRES_DB:-nexus}?schema=public
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dashboard
+    env_file: ../.env
+    environment:
+      NODE_ENV: production
+      API_INTERNAL_URL: http://api:4000
+    ports:
+      - '3000:3000'
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
