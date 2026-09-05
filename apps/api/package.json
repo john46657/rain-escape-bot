@@ -1,0 +1,19 @@
+{
+  "name": "@nexus/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "node ../../scripts/build.mjs apps/api/src/index.ts apps/api/dist/index.js"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^10.0.2",
+    "@fastify/websocket": "^11.0.1",
+    "fastify": "^5.2.1",
+    "zod": "^3.24.1"
+  }
+}
