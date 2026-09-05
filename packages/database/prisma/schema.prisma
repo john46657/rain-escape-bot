@@ -1,0 +1,1232 @@
+// =============================================================================
+// NEXUS — Datenmodell
+// =============================================================================
+// Zielsystem ist PostgreSQL. Das Schema bleibt trotzdem bewusst portabel,
+// damit ein Wechsel des Providers (z. B. SQLite fuer einen Einzelserver)
+// nur eine Zeilenaenderung ist und keine Modellumbauten erfordert:
+//
+//  1. KEINE nativen Enums. Stattdessen String-Spalten + zod-Validierung in
+//     `@nexus/shared` (siehe types/enums.ts). Die erlaubten Werte stehen
+//     jeweils im Kommentar der Spalte.
+//  2. KEINE Scalar-Arrays (`String[]`). Stattdessen JSON-Text-Spalten mit den
+//     Helfern `parseJson`/`stringifyJson` aus `@nexus/database`.
+//  3. KEINE `@db.*`-Attribute, da providerspezifisch.
+//  4. Jede Fremdschluessel-Spalte und jedes Abfragemuster hat einen Index
+//     (Regel 42: keine unnoetigen/langsamen Queries).
+//  5. Secrets werden ausschliesslich als Hash gespeichert (Regel 34/49).
+//
+// Hinweis: `provider` MUSS ein Literal sein. Prisma lehnt `env()` an dieser
+// Stelle ab (Fehler P1012) — nur `url` darf aus der Umgebung kommen.
+// =============================================================================
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// =============================================================================
+// Kern: Benutzer & Guilds
+// =============================================================================
+
+/// Globaler NEXUS-Benutzer (ein Discord-Account, serveruebergreifend).
+model User {
+  /// Primaerschluessel IST die Discord-Snowflake. Das vermeidet eine
+  /// zusaetzliche ID-Aufloesung in jedem Schreibpfad (Regel 42).
+  id            String   @id
+  username      String
+  globalName    String?
+  avatar        String?
+  locale        String   @default("de") /// de | en
+  isBotOwner    Boolean  @default(false)
+  /// Globale Sperre fuer die gesamte Plattform (Missbrauch).
+  blacklisted   Boolean  @default(false)
+  blacklistNote String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastSeenAt    DateTime?
+
+  robloxAccount    RobloxAccount?
+  verifications    Verification[]
+  memberships      GuildMember[]
+  xpProfiles       XPProfile[]
+  economyProfiles  EconomyProfile[]
+  sessions         DashboardSession[]
+  apiKeys          ApiKey[]
+  notifications    Notification[]
+  achievements     UserAchievement[]
+  rewardGrants     RewardGrant[]
+  promoRedemptions PromoRedemption[]
+
+  @@index([blacklisted])
+  @@index([lastSeenAt])
+}
+
+/// Ein Discord-Server. Jede Guild ist vollstaendig mandantengetrennt (Regel 47).
+model Guild {
+  /// Primaerschluessel IST die Discord-Snowflake (siehe User).
+  id          String   @id
+  name        String
+  icon        String?
+  ownerId     String /// Discord-Snowflake des Guild-Owners
+  memberCount Int      @default(0)
+  premiumTier String   @default("FREE") /// FREE | PREMIUM | PREMIUM_PLUS
+  premiumUntil DateTime?
+  locale      String   @default("de")
+  active      Boolean  @default(true)
+  joinedAt    DateTime @default(now())
+  leftAt      DateTime?
+  updatedAt   DateTime @updatedAt
+
+  config           GuildConfig?
+  members          GuildMember[]
+  permissionGrants PermissionGrant[]
+  moderationCases  ModerationCase[]
+  warnings         Warning[]
+  tickets          Ticket[]
+  ticketPanels     TicketPanel[]
+  xpProfiles       XPProfile[]
+  levelRewards     LevelReward[]
+  economyProfiles  EconomyProfile[]
+  transactions     Transaction[]
+  items            Item[]
+  giveaways        Giveaway[]
+  automations      Automation[]
+  incidents        SecurityIncident[]
+  auditLogs        AuditLog[]
+  backups          Backup[]
+  webhooks         Webhook[]
+  notifications    Notification[]
+  robloxGames      RobloxGame[]
+  robloxGroups     RobloxGroup[]
+  achievements     Achievement[]
+  promoCodes       PromoCode[]
+  reactionRoles    ReactionRole[]
+  starboardEntries StarboardEntry[]
+  suggestions      Suggestion[]
+  analyticsPoints  AnalyticsSnapshot[]
+  eventRoutes      RobloxEventRoute[]
+  apiKeys          ApiKey[]
+
+  @@index([active])
+  @@index([premiumTier])
+}
+
+/// Alle serverspezifischen Einstellungen (Regel 47).
+/// Komplexe Teilbereiche liegen als JSON-Text vor und werden beim Lesen
+/// mit zod validiert — so bleibt das Schema stabil, wenn Module wachsen.
+model GuildConfig {
+  id      String @id @default(cuid())
+  guildId String @unique
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  // --- Allgemein ---
+  prefix            String  @default("/")
+  timezone          String  @default("Europe/Berlin")
+  modLogChannelId   String?
+  auditLogChannelId String?
+  securityChannelId String?
+  robloxLogChannelId String?
+
+  // --- Module an/aus ---
+  moderationEnabled Boolean @default(true)
+  automodEnabled    Boolean @default(true)
+  antiNukeEnabled   Boolean @default(true)
+  ticketsEnabled    Boolean @default(true)
+  levelsEnabled     Boolean @default(true)
+  economyEnabled    Boolean @default(true)
+  gamesEnabled      Boolean @default(true)
+  giveawaysEnabled  Boolean @default(true)
+  musicEnabled      Boolean @default(false)
+  aiEnabled         Boolean @default(false)
+  robloxEnabled     Boolean @default(false)
+
+  // --- Community ---
+  welcomeChannelId  String?
+  welcomeMessage    String?
+  goodbyeChannelId  String?
+  goodbyeMessage    String?
+  boostChannelId    String?
+  suggestionChannelId String?
+  starboardChannelId  String?
+  starboardThreshold  Int     @default(5)
+  birthdayChannelId String?
+  /// JSON: string[] — Rollen, die neuen Mitgliedern zugewiesen werden.
+  autoRoleIds       String  @default("[]")
+  /// JSON: { channelId: string, template: string }[]
+  memberCounters    String  @default("[]")
+
+  // --- Levels ---
+  xpPerMessage      Int     @default(15)
+  xpCooldownSeconds Int     @default(60)
+  xpMultiplier      Float   @default(1.0)
+  levelUpChannelId  String?
+  levelUpMessage    String?
+  /// JSON: string[] — Kanaele ohne XP-Vergabe.
+  xpIgnoredChannels String  @default("[]")
+
+  // --- Economy ---
+  currencyName   String @default("Nexus Coins")
+  currencySymbol String @default("⬢")
+  dailyAmount    Int    @default(250)
+  weeklyAmount   Int    @default(1500)
+  workMinAmount  Int    @default(50)
+  workMaxAmount  Int    @default(400)
+  startingBalance Int   @default(100)
+
+  // --- Sicherheit ---
+  /// JSON: string[] — Benutzer/Rollen, die von Anti-Nuke ausgenommen sind.
+  antiNukeWhitelist String  @default("[]")
+  /// JSON: Record<AutomodRule, { enabled, action, threshold, ... }>
+  automodConfig     String  @default("{}")
+  /// JSON: Anti-Nuke-Schwellenwerte pro Aktionstyp.
+  antiNukeThresholds String @default("{}")
+  raidModeEnabled   Boolean @default(false)
+  minAccountAgeDays Int     @default(0)
+  lockdownActive    Boolean @default(false)
+  lockdownReason    String?
+  lockdownAt        DateTime?
+  lockdownBy        String?
+  /// JSON: { channelId: string, previousOverwrites: unknown }[] — Zustand vor dem Lockdown.
+  lockdownSnapshot  String  @default("[]")
+
+  // --- Roblox ---
+  verifiedRoleId     String?
+  unverifiedRoleId   String?
+  robloxNicknameSync Boolean @default(false)
+  /// JSON: Freitext-Template, z. B. "{robloxName}".
+  nicknameTemplate   String  @default("{robloxName}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Mitgliedschaft eines Users in einer Guild (Cache + Metriken).
+model GuildMember {
+  id       String @id @default(cuid())
+  guildId  String
+  userId   String
+  guild    Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  nickname     String?
+  joinedAt     DateTime?
+  firstSeenAt  DateTime  @default(now())
+  lastActiveAt DateTime?
+  messageCount Int       @default(0)
+  voiceMinutes Int       @default(0)
+  /// JSON: string[] — zuletzt bekannte Rollen (fuer Restore nach Rejoin).
+  roleIds      String    @default("[]")
+  birthday     String? /// Format MM-DD (kein Jahr — Datenminimierung)
+  afkSince     DateTime?
+  afkReason    String?
+  left         Boolean   @default(false)
+
+  @@unique([guildId, userId])
+  @@index([guildId, lastActiveAt])
+  @@index([guildId, left])
+}
+
+/// Granulare NEXUS-Berechtigungen pro Rolle/Benutzer (Regel 35).
+model PermissionGrant {
+  id          String @id @default(cuid())
+  guildId     String
+  guild       Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  subjectId   String /// Discord-Rollen- oder User-Snowflake
+  subjectType String /// role | user
+  /// JSON: string[] — erlaubte Knoten (Wildcards moeglich)
+  allow       String @default("[]")
+  /// JSON: string[] — explizite Verbote (haben Vorrang)
+  deny        String @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([guildId, subjectId, subjectType])
+  @@index([guildId])
+}
+
+// =============================================================================
+// Moderation
+// =============================================================================
+
+/// Ein Moderationsfall mit vollstaendiger Nachvollziehbarkeit (Regel 5).
+model ModerationCase {
+  id        String @id @default(cuid())
+  guildId   String
+  guild     Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  /// Fortlaufende Nummer je Guild — Basis der lesbaren Case-ID.
+  sequence  Int
+  caseId    String /// z. B. NX-4821-000137
+
+  action      String /// siehe MODERATION_ACTIONS
+  targetId    String /// Discord-Snowflake
+  targetTag   String?
+  moderatorId String
+  moderatorTag String?
+  reason      String  @default("Kein Grund angegeben")
+  /// Quelle: COMMAND | AUTOMOD | ANTINUKE | DASHBOARD | API | AUTOMATION
+  source      String  @default("COMMAND")
+
+  /// JSON — Zustand vor der Aktion (Rollen, Timeout, Nickname ...).
+  previousState String @default("{}")
+  /// JSON — Zustand nach der Aktion.
+  newState      String @default("{}")
+
+  durationMs  Int?
+  expiresAt   DateTime?
+  active      Boolean   @default(true)
+  revoked     Boolean   @default(false)
+  revokedById String?
+  revokedAt   DateTime?
+  /// Referenz auf die Discord-Nachricht im Mod-Log (fuer Updates).
+  logMessageId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  warnings Warning[]
+
+  @@unique([guildId, sequence])
+  @@unique([guildId, caseId])
+  @@index([guildId, targetId, createdAt])
+  @@index([guildId, moderatorId])
+  @@index([guildId, action])
+  @@index([active, expiresAt])
+}
+
+/// Verwarnung — eigene Entitaet, damit Punkte/Ablauf modelliert werden koennen.
+model Warning {
+  id       String @id @default(cuid())
+  guildId  String
+  guild    Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  caseRef  String?
+  case     ModerationCase? @relation(fields: [caseRef], references: [id], onDelete: SetNull)
+
+  targetId    String
+  moderatorId String
+  reason      String
+  points      Int      @default(1)
+  active      Boolean  @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([guildId, targetId, active])
+  /// Wird beim Aufloesen eines Falls zu seinen Verwarnungen genutzt.
+  @@index([caseRef])
+  @@index([expiresAt])
+}
+
+// =============================================================================
+// Sicherheit
+// =============================================================================
+
+/// Sicherheitsvorfall (Anti-Nuke, Raid, Roblox-Anomalie) — Regel 7/24.
+model SecurityIncident {
+  id      String @id @default(cuid())
+  guildId String?
+  guild   Guild? @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  /// ANTINUKE | RAID | AUTOMOD | ROBLOX_ANOMALY | API_ABUSE | SIGNATURE_FAILURE
+  kind        String
+  severity    String  @default("MEDIUM") /// LOW | MEDIUM | HIGH | CRITICAL
+  status      String  @default("OPEN")   /// OPEN | ACKNOWLEDGED | MITIGATED | RESOLVED | FALSE_POSITIVE
+  title       String
+  description String
+
+  actorId     String? /// Discord-User oder Roblox-UserID
+  actorType   String? /// discord | roblox | api
+  robloxGameId String?
+
+  /// JSON — Rohdaten des Ausloesers (Metriken, Schwellenwerte, Beispiele).
+  evidence String @default("{}")
+  /// JSON: string[] — automatisch ergriffene Massnahmen.
+  actionsTaken String @default("[]")
+
+  acknowledgedBy String?
+  acknowledgedAt DateTime?
+  resolvedBy     String?
+  resolvedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([guildId, status, severity])
+  @@index([createdAt])
+  @@index([kind])
+}
+
+/// Revisionssicheres Protokoll administrativer Aktionen (Regel 34).
+model AuditLog {
+  id      String @id @default(cuid())
+  guildId String?
+  guild   Guild? @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  actorId   String
+  actorType String @default("discord") /// discord | api | system | dashboard
+  action    String /// z. B. "moderation.ban", "roblox.command.dispatch"
+  targetId  String?
+  targetType String?
+  result    String  @default("SUCCESS") /// SUCCESS | DENIED | FAILED
+  reason    String?
+  /// JSON — Kontext OHNE Secrets.
+  metadata  String  @default("{}")
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([guildId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([action])
+}
+
+/// Server-Backup (Regel 9). Der Inhalt liegt als komprimiertes JSON vor.
+model Backup {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  name       String
+  createdById String
+  /// JSON — Kanaele, Kategorien, Rollen, Berechtigungen, Emojis, NEXUS-Config.
+  payload    String
+  /// Anzahl gesicherter Objekte je Typ (schnelle Vorschau ohne Payload-Parse).
+  summary    String  @default("{}")
+  sizeBytes  Int     @default(0)
+  checksum   String
+  restoredAt DateTime?
+  restoredBy String?
+  createdAt  DateTime @default(now())
+
+  @@index([guildId, createdAt])
+}
+
+// =============================================================================
+// Tickets
+// =============================================================================
+
+model TicketPanel {
+  id        String @id @default(cuid())
+  guildId   String
+  guild     Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  channelId String
+  messageId String?
+  title     String
+  description String
+  /// JSON: { key, label, emoji, categoryId, supportRoleIds, formFields }[]
+  categories  String @default("[]")
+  /// JSON: string[]
+  supportRoleIds String @default("[]")
+  transcriptChannelId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tickets Ticket[]
+
+  @@index([guildId])
+}
+
+model Ticket {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  panelId String?
+  panel   TicketPanel? @relation(fields: [panelId], references: [id], onDelete: SetNull)
+
+  number    Int /// fortlaufend je Guild, z. B. Ticket #104
+  channelId String  @unique
+  openerId  String
+  category  String  @default("SUPPORT")
+  subject   String?
+  status    String  @default("OPEN") /// OPEN | CLAIMED | LOCKED | CLOSED | DELETED
+  claimedById String?
+  claimedAt   DateTime?
+  closedById  String?
+  closedAt    DateTime?
+  closeReason String?
+  reopenCount Int    @default(0)
+  rating      Int? /// 1..5
+  ratingComment String?
+  /// JSON — Antworten aus dem Eroeffnungs-Modal.
+  formData    String @default("{}")
+  transcriptUrl String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  messages TicketMessage[]
+
+  @@unique([guildId, number])
+  /// Panels listen ihre Tickets — ohne Index waere das ein Vollscan.
+  @@index([panelId])
+  @@index([guildId, status])
+  @@index([openerId])
+}
+
+/// Nachrichten fuer das Transcript. Anhaenge werden nur als URL referenziert.
+model TicketMessage {
+  id       String @id @default(cuid())
+  ticketId String
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  messageId String
+  authorId  String
+  authorTag String
+  content   String
+  /// JSON: { url, name, contentType }[]
+  attachments String @default("[]")
+  isStaff   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+// =============================================================================
+// Community
+// =============================================================================
+
+model ReactionRole {
+  id        String @id @default(cuid())
+  guildId   String
+  guild     Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  channelId String
+  messageId String
+  /// button | reaction | select
+  mode      String @default("button")
+  /// JSON: { emoji, roleId, label, description }[]
+  options   String @default("[]")
+  /// none | unique | verify — Verhalten bei Mehrfachauswahl
+  behaviour String @default("none")
+  createdAt DateTime @default(now())
+
+  @@unique([messageId])
+  @@index([guildId])
+}
+
+model Suggestion {
+  id        String @id @default(cuid())
+  guildId   String
+  guild     Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  number    Int
+  authorId  String
+  content   String
+  messageId String?
+  status    String @default("OPEN") /// OPEN | APPROVED | DENIED | IMPLEMENTED
+  upvotes   Int    @default(0)
+  downvotes Int    @default(0)
+  /// JSON: Record<userId, 1 | -1> — verhindert Mehrfachabstimmung.
+  votes     String @default("{}")
+  staffNote String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([guildId, number])
+  @@index([guildId, status])
+}
+
+model StarboardEntry {
+  id              String @id @default(cuid())
+  guildId         String
+  guild           Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  sourceMessageId String
+  starboardMessageId String?
+  authorId        String
+  channelId       String
+  stars           Int    @default(0)
+  createdAt       DateTime @default(now())
+
+  @@unique([guildId, sourceMessageId])
+  @@index([guildId, stars])
+}
+
+// =============================================================================
+// Levels
+// =============================================================================
+
+model XPProfile {
+  id      String @id @default(cuid())
+  guildId String
+  userId  String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  xp        Int @default(0)
+  level      Int @default(0)
+  totalXp    Int @default(0)
+  prestige   Int @default(0)
+  messages   Int @default(0)
+  voiceMinutes Int @default(0)
+  lastXpAt   DateTime?
+  updatedAt  DateTime @updatedAt
+
+  @@unique([guildId, userId])
+  @@index([guildId, totalXp])
+  @@index([guildId, level])
+}
+
+model LevelReward {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  level   Int
+  roleId  String?
+  coins   Int     @default(0)
+  /// Rolle beim naechsten Reward wieder entfernen?
+  removePrevious Boolean @default(false)
+  announce Boolean @default(true)
+
+  @@unique([guildId, level])
+  @@index([guildId])
+}
+
+// =============================================================================
+// Economy
+// =============================================================================
+
+model EconomyProfile {
+  id      String @id @default(cuid())
+  guildId String
+  userId  String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  wallet Int @default(0)
+  bank   Int @default(0)
+  bankCapacity Int @default(10000)
+  /// Optimistic-Locking-Zaehler: schuetzt vor Lost Updates bei parallelen Transaktionen.
+  version Int @default(0)
+
+  totalEarned Int @default(0)
+  totalSpent  Int @default(0)
+  streakDays  Int @default(0)
+
+  lastDailyAt  DateTime?
+  lastWeeklyAt DateTime?
+  lastWorkAt   DateTime?
+  lastCrimeAt  DateTime?
+  lastRobAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  inventory InventoryItem[]
+
+  @@unique([guildId, userId])
+  @@index([guildId, wallet])
+}
+
+/// Unveraenderliches Transaktionsjournal (Regel 13).
+model Transaction {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  userId  String
+
+  type        String /// siehe TRANSACTION_TYPES
+  amount      Int /// positiv = Zufluss, negativ = Abfluss
+  balanceAfter Int
+  counterpartyId String?
+  reason      String?
+  /// Idempotenzschluessel — verhindert doppelte Gutschriften bei Retries.
+  idempotencyKey String? @unique
+  metadata    String @default("{}")
+  createdAt   DateTime @default(now())
+
+  @@index([guildId, userId, createdAt])
+  @@index([guildId, type])
+}
+
+model Item {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  key         String
+  name        String
+  description String
+  emoji       String?
+  price       Int
+  sellPrice   Int     @default(0)
+  /// consumable | collectible | role | robloxReward
+  kind        String  @default("collectible")
+  roleId      String?
+  /// JSON — z. B. { robloxRewardKey, amount }
+  payload     String  @default("{}")
+  stock       Int     @default(-1) /// -1 = unbegrenzt
+  maxPerUser  Int     @default(-1)
+  tradable    Boolean @default(true)
+  enabled     Boolean @default(true)
+  createdAt   DateTime @default(now())
+
+  inventory InventoryItem[]
+
+  @@unique([guildId, key])
+  @@index([guildId, enabled])
+}
+
+model InventoryItem {
+  id        String @id @default(cuid())
+  profileId String
+  profile   EconomyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  itemId    String
+  item      Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  quantity  Int    @default(1)
+  acquiredAt DateTime @default(now())
+
+  @@unique([profileId, itemId])
+  @@index([itemId])
+}
+
+// =============================================================================
+// Giveaways
+// =============================================================================
+
+model Giveaway {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  channelId String
+  messageId String?
+  hostId    String
+  prize     String
+  description String?
+  winnerCount Int    @default(1)
+  endsAt      DateTime
+  ended       Boolean @default(false)
+
+  /// JSON — { roleIds, minLevel, minAccountAgeDays, requireRobloxVerified, minRobloxLevel }
+  requirements String @default("{}")
+  /// JSON: string[] — Teilnehmer (Discord-IDs)
+  entries      String @default("[]")
+  /// JSON: string[] — gezogene Gewinner
+  winners      String @default("[]")
+  rerollCount  Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([guildId, ended])
+  @@index([ended, endsAt])
+}
+
+// =============================================================================
+// Roblox
+// =============================================================================
+
+/// Verknuepfung Discord <-> Roblox (Regel 17).
+model RobloxAccount {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  robloxUserId String @unique
+  username     String
+  displayName  String?
+  avatarUrl    String?
+  /// Erkennung von Namensaenderungen (Regel 17).
+  previousUsername String?
+  usernameCheckedAt DateTime?
+
+  verifiedAt DateTime @default(now())
+  /// game | oauth | manual — wie die Verknuepfung entstand
+  method     String   @default("game")
+  verifiedInGameId String?
+  lastSyncedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  groupMemberships RobloxGroupMembership[]
+  sessions         RobloxSession[]
+
+  @@index([username])
+}
+
+/// Einmalcode fuer den Verifizierungsablauf. Es wird nur der Hash gespeichert.
+model Verification {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// scrypt-Hash des Codes — der Klartext existiert nur beim Nutzer.
+  codeHash  String
+  /// Praefix zum schnellen Auffinden ohne Preisgabe des Codes.
+  codeHint  String
+  guildId   String?
+  gameId    String?
+  status    String   @default("PENDING") /// PENDING | VERIFIED | EXPIRED | REVOKED
+  attempts  Int      @default(0)
+  maxAttempts Int    @default(5)
+  robloxUserId String?
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, status])
+  @@index([codeHint])
+  @@index([expiresAt])
+}
+
+/// Ein Roblox-Spiel (Universe). Mehrere Spiele je Guild moeglich (Regel 48).
+model RobloxGame {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  universeId String
+  placeId    String?
+  name       String
+  iconUrl    String?
+  /// Getrenntes HMAC-Secret je Spiel (Hash). Klartext nur bei Erstellung.
+  signingSecretHash String
+  secretHint String
+  active     Boolean @default(true)
+  /// JSON — spielspezifische Einstellungen (Rewards, Event-Mapping ...).
+  settings   String  @default("{}")
+  lastEventAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  servers  RobloxServer[]
+  events   RobloxEvent[]
+  commands RobloxCommand[]
+  sessions RobloxSession[]
+  routes   RobloxEventRoute[]
+
+  @@unique([guildId, universeId])
+  @@index([active])
+}
+
+/// Live-Zustand eines Roblox-Servers (Regel 20) — gespeist aus Heartbeats.
+model RobloxServer {
+  id     String @id @default(cuid())
+  gameId String
+  game   RobloxGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  jobId       String
+  placeId     String?
+  region      String?
+  playerCount Int     @default(0)
+  maxPlayers  Int     @default(0)
+  version     String?
+  fps         Float?
+  memoryMb    Float?
+  startedAt   DateTime @default(now())
+  lastHeartbeatAt DateTime @default(now())
+  /// online | stale | offline — abgeleitet vom Heartbeat-Alter
+  status      String  @default("online")
+  /// JSON: RobloxPlayerRef[] — aktuelle Spieler (Snapshot).
+  players     String  @default("[]")
+
+  @@unique([gameId, jobId])
+  @@index([gameId, status])
+  @@index([lastHeartbeatAt])
+}
+
+/// Spielsitzung eines Spielers — Basis fuer Retention/CCU-Analysen.
+model RobloxSession {
+  id       String @id @default(cuid())
+  gameId   String
+  game     RobloxGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  accountId String?
+  account  RobloxAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+
+  robloxUserId String
+  jobId        String?
+  joinedAt     DateTime @default(now())
+  leftAt       DateTime?
+  durationSeconds Int?
+
+  @@index([gameId, joinedAt])
+  @@index([robloxUserId])
+  /// Spielzeit je verknuepftem Discord-Konto.
+  @@index([accountId])
+}
+
+/// Eingehendes Roblox-Ereignis (Regel 21). `eventId` sichert Idempotenz.
+model RobloxEvent {
+  id      String @id @default(cuid())
+  gameId  String
+  game    RobloxGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  eventId String @unique
+  type    String
+  jobId   String?
+  robloxUserId String?
+  payload String @default("{}")
+  occurredAt DateTime
+  receivedAt DateTime @default(now())
+  processedAt DateTime?
+  /// Fehlermeldung, falls die Verarbeitung fehlschlug (fuer Retry/Debug).
+  error   String?
+
+  @@index([gameId, type, occurredAt])
+  @@index([robloxUserId])
+  @@index([processedAt])
+}
+
+/// Routing-Regel: welches Roblox-Event geht in welchen Discord-Kanal.
+model RobloxEventRoute {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  gameId  String?
+  game    RobloxGame? @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  eventType String
+  channelId String
+  enabled   Boolean @default(true)
+  /// JSON — optionale Filter, z. B. { minAmount: 100 }
+  filter    String  @default("{}")
+  createdAt DateTime @default(now())
+
+  @@unique([guildId, gameId, eventType, channelId])
+  @@index([guildId, enabled])
+}
+
+/// Ausgehendes Kommando Discord -> Roblox (Regel 22).
+model RobloxCommand {
+  id     String @id @default(cuid())
+  gameId String
+  game   RobloxGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  type        String
+  jobId       String? /// null = an alle Server
+  payload     String  @default("{}")
+  status      String  @default("PENDING") /// PENDING | DELIVERED | ACKNOWLEDGED | FAILED | EXPIRED
+  issuedById  String
+  issuedByType String @default("discord")
+  guildId     String?
+  /// Bestaetigung durch einen berechtigten Zweitnutzer (gefaehrliche Aktionen).
+  confirmedById String?
+  deliveredAt DateTime?
+  acknowledgedAt DateTime?
+  result      String?
+  error       String?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([gameId, status, createdAt])
+  @@index([expiresAt])
+}
+
+/// Roblox-Gruppe mit Rang -> Discord-Rollen-Mapping (Regel 19).
+model RobloxGroup {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  groupId   String
+  name      String
+  syncEnabled Boolean @default(true)
+  /// Rollen entfernen, wenn der Nutzer die Gruppe verlassen hat?
+  removeOnLeave Boolean @default(true)
+  /// JSON: { rank: number, rankName: string, roleId: string }[]
+  rankMapping String @default("[]")
+  lastSyncAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  memberships RobloxGroupMembership[]
+
+  @@unique([guildId, groupId])
+}
+
+model RobloxGroupMembership {
+  id        String @id @default(cuid())
+  groupRef  String
+  group     RobloxGroup @relation(fields: [groupRef], references: [id], onDelete: Cascade)
+  accountId String
+  account   RobloxAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  rank      Int
+  rankName  String
+  syncedAt  DateTime @default(now())
+
+  @@unique([groupRef, accountId])
+  @@index([accountId])
+}
+
+// =============================================================================
+// Cross-Platform: Achievements, Rewards, Promo Codes
+// =============================================================================
+
+model Achievement {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  key         String
+  name        String
+  description String
+  rarity      String @default("COMMON") /// COMMON | RARE | EPIC | LEGENDARY | SECRET
+  icon        String?
+  hidden      Boolean @default(false)
+  /// discord | roblox | cross
+  origin      String  @default("discord")
+  /// JSON — { xp, coins, roleId, robloxReward: { key, amount } }
+  rewards     String  @default("{}")
+  /// JSON — Bedingung, z. B. { metric: "messages", gte: 1000 }
+  condition   String  @default("{}")
+  enabled     Boolean @default(true)
+  createdAt   DateTime @default(now())
+
+  unlocks UserAchievement[]
+
+  @@unique([guildId, key])
+  @@index([guildId, enabled])
+}
+
+model UserAchievement {
+  id            String @id @default(cuid())
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guildId       String
+  unlockedAt    DateTime @default(now())
+  /// Fortschritt bis zum Erreichen (fuer Teilfortschritt-Anzeige).
+  progress      Int    @default(100)
+
+  @@unique([achievementId, userId])
+  @@index([userId])
+}
+
+/// Idempotente Belohnungsvergabe (Regel 25).
+/// Der Unique-Key verhindert doppelte Vergaben bei Retries/Duplikaten.
+model RewardGrant {
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guildId String?
+
+  /// Eindeutig pro Ausloeser, z. B. "roblox:achievement:first_win:user123".
+  idempotencyKey String @unique
+  /// discord_xp | discord_coins | discord_role | roblox_reward
+  kind      String
+  amount    Int     @default(0)
+  reference String?
+  /// PENDING | GRANTED | FAILED
+  status    String  @default("PENDING")
+  error     String?
+  source    String /// z. B. "roblox.achievement" | "discord.level"
+  createdAt DateTime @default(now())
+  grantedAt DateTime?
+
+  @@index([userId, status])
+  @@index([guildId, createdAt])
+}
+
+model PromoCode {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  code      String
+  /// JSON — { coins, xp, roleId, itemKey, robloxReward }
+  reward    String  @default("{}")
+  maxUses   Int     @default(-1) /// -1 = unbegrenzt
+  uses      Int     @default(0)
+  perUserLimit Int  @default(1)
+  gameId    String?
+  expiresAt DateTime?
+  enabled   Boolean @default(true)
+  createdById String
+  createdAt DateTime @default(now())
+
+  redemptions PromoRedemption[]
+
+  @@unique([guildId, code])
+  @@index([guildId, enabled])
+}
+
+model PromoRedemption {
+  id     String @id @default(cuid())
+  codeId String
+  code   PromoCode @relation(fields: [codeId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  redeemedAt DateTime @default(now())
+
+  @@unique([codeId, userId])
+  @@index([userId])
+}
+
+// =============================================================================
+// Automation & Analytics
+// =============================================================================
+
+/// Event -> Condition -> Action Regelwerk (Regel 28).
+model Automation {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+  enabled     Boolean @default(true)
+  /// Ausloeser, z. B. "roblox.level_up" oder "discord.member_join"
+  trigger     String
+  /// Cron-Ausdruck fuer zeitgesteuerte Automationen (optional).
+  schedule    String?
+  /// JSON: Condition[] — { field, operator, value }
+  conditions  String  @default("[]")
+  /// JSON: Action[]    — { type, params, delayMs }
+  actions     String  @default("[]")
+  /// Verhindert Endlosschleifen: max. Ausfuehrungen pro Stunde.
+  rateLimitPerHour Int @default(120)
+
+  runCount    Int      @default(0)
+  errorCount  Int      @default(0)
+  lastRunAt   DateTime?
+  lastError   String?
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  runs AutomationRun[]
+
+  @@index([guildId, enabled, trigger])
+}
+
+model AutomationRun {
+  id           String @id @default(cuid())
+  automationId String
+  automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+
+  /// SUCCESS | SKIPPED | FAILED
+  status    String
+  /// JSON — Trigger-Payload und Ergebnisse je Aktion.
+  trace     String @default("{}")
+  durationMs Int   @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([automationId, createdAt])
+}
+
+/// Vorberechnete Kennzahlen (Regel 29/42) — vermeidet teure Live-Aggregationen.
+model AnalyticsSnapshot {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  /// hour | day
+  granularity String @default("day")
+  bucket      DateTime
+  /// discord | roblox | cross
+  scope       String @default("discord")
+  /// JSON — Kennzahlen des Zeitfensters.
+  metrics     String @default("{}")
+  createdAt   DateTime @default(now())
+
+  @@unique([guildId, scope, granularity, bucket])
+  @@index([guildId, bucket])
+}
+
+// =============================================================================
+// Plattform: API, Webhooks, Benachrichtigungen, Sessions
+// =============================================================================
+
+model ApiKey {
+  id      String @id @default(cuid())
+  guildId String?
+  guild   Guild?  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  ownerId String
+  owner   User    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  name    String
+  /// SHA-256-Hash. Der Klartext wird nie gespeichert (Regel 49).
+  keyHash String @unique
+  prefix  String
+  last4   String
+  /// JSON: string[] — Berechtigungsknoten dieses Keys.
+  scopes  String @default("[]")
+  rateLimitPerMinute Int @default(60)
+  environment String @default("live") /// live | test
+  lastUsedAt DateTime?
+  usageCount Int    @default(0)
+  revokedAt  DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime @default(now())
+
+  requests ApiRequestLog[]
+
+  @@index([guildId])
+  @@index([ownerId])
+}
+
+/// Zugriffsprotokoll fuer das Developer-Portal (Regel 49).
+model ApiRequestLog {
+  id       String @id @default(cuid())
+  apiKeyId String?
+  apiKey   ApiKey? @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+
+  method     String
+  path       String
+  statusCode Int
+  durationMs Int
+  ip         String?
+  requestId  String?
+  error      String?
+  createdAt  DateTime @default(now())
+
+  @@index([apiKeyId, createdAt])
+  @@index([createdAt])
+}
+
+model Webhook {
+  id      String @id @default(cuid())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  name   String
+  url    String
+  /// HMAC-Secret zum Signieren ausgehender Webhooks (Hash gespeichert).
+  secretHash String
+  /// JSON: string[] — abonnierte Ereignisse
+  events String @default("[]")
+  enabled Boolean @default(true)
+  failureCount Int @default(0)
+  lastDeliveryAt DateTime?
+  lastStatus     Int?
+  createdAt DateTime @default(now())
+
+  @@index([guildId, enabled])
+}
+
+model Notification {
+  id      String @id @default(cuid())
+  guildId String?
+  guild   Guild?  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  userId  String?
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  category String /// SECURITY | MODERATION | TICKETS | ROBLOX | SYSTEM | ECONOMY
+  severity String @default("INFO") /// INFO | WARNING | CRITICAL
+  title    String
+  body     String
+  link     String?
+  read     Boolean @default(false)
+  readAt   DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([guildId, read, createdAt])
+  @@index([userId, read])
+}
+
+model DashboardSession {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Hash des Session-Tokens — nie im Klartext.
+  tokenHash String @unique
+  ip        String?
+  userAgent String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}

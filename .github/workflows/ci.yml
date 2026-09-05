@@ -1,0 +1,116 @@
+# ---------------------------------------------------------------------------
+# Kontinuierliche Integration (Regel 48).
+#
+# Prueft bei jedem Push und Pull Request dieselben Schritte, die auch lokal
+# vor einem Commit laufen. Die Jobs sind getrennt, damit im Fehlerfall sofort
+# sichtbar ist, welcher Bereich betroffen ist.
+# ---------------------------------------------------------------------------
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Die Pruefungen laufen ohne PostgreSQL und Redis: der In-Memory-Adapter
+  # bildet dieselbe Semantik ab (siehe docs/ARCHITECTURE.md).
+  DEV_MODE: 'true'
+  DEV_SEED: 'false'
+
+jobs:
+  quality:
+    name: Typecheck, Lint und Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Abhaengigkeiten installieren
+        run: npm ci --ignore-scripts
+
+      - name: Typpruefung (strict)
+        run: npm run typecheck
+
+      - name: Linting
+        run: npm run lint
+
+      - name: Formatierung pruefen
+        run: npx prettier --check "**/*.{ts,tsx,md,json}"
+
+      - name: Prisma-Schema strukturell pruefen
+        # Laeuft ohne Netzwerk und ohne Prisma-Engines.
+        run: npm run check:schema
+
+      - name: Tests
+        run: npm test
+
+  build:
+    name: Produktions-Bundles
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Abhaengigkeiten installieren
+        run: npm ci --ignore-scripts
+
+      - name: Bot und API buendeln
+        run: npm run build
+
+      - name: Dashboard bauen
+        run: npm run build:dashboard
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+
+      - name: Startfaehigkeit der API pruefen
+        # Ein Bundle, das nicht startet, ist kein gruener Build.
+        run: |
+          API_PORT=4123 node dist/api.mjs &
+          for attempt in $(seq 1 20); do
+            if curl -sf http://127.0.0.1:4123/health/ready > /dev/null; then
+              echo "API antwortet"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API wurde nicht bereit"
+          exit 1
+
+  schema:
+    name: Prisma-Schema
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Abhaengigkeiten installieren
+        run: npm ci --ignore-scripts
+
+      - name: Schema validieren
+        run: npx prisma validate --schema packages/database/prisma/schema.prisma
+        env:
+          DATABASE_URL: postgresql://nexus:nexus@localhost:5432/nexus?schema=public
+
+      - name: Client generieren
+        run: npm run db:generate
