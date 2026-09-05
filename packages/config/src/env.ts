@@ -24,6 +24,8 @@ const snowflake = z.string().regex(/^\d{15,25}$/, 'Ungueltige Discord-Snowflake'
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   DEV_MODE: bool(false),
+  /** Laedt Demo-Daten in den In-Memory-Store (nur zusammen mit DEV_MODE). */
+  DEV_SEED: bool(true),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   LOG_PRETTY: bool(false),
 
@@ -48,12 +50,17 @@ export const envSchema = z.object({
   DASHBOARD_URL: z.string().url().default('http://localhost:3000'),
   SESSION_SECRET: z.string().min(16).default('dev-session-secret-change-me!!'),
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
+  /** OAuth2-Rueckleitung; muss im Discord-Developer-Portal hinterlegt sein. */
+  OAUTH_REDIRECT_URI: z.string().url().default('http://localhost:4000/auth/callback'),
+  API_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(120),
 
   // ---- Roblox ----
   ROBLOX_API_KEY: z.string().optional(),
   /** HMAC-Secret fuer die Signatur der Game-Server-Requests (Regel 37). */
   ROBLOX_SIGNING_SECRET: z.string().min(16).default('dev-roblox-signing-secret-change'),
   ROBLOX_REQUEST_SKEW_SECONDS: z.coerce.number().int().positive().default(300),
+  /** Anfragen je Minute und Spiel (Heartbeats + Events + Polling). */
+  ROBLOX_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(240),
   ROBLOX_GROUP_SYNC_INTERVAL_MINUTES: z.coerce.number().int().positive().default(30),
 
   // ---- Optionale Integrationen ----

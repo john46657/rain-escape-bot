@@ -19,7 +19,13 @@ export async function createDataStore(): Promise<DataStore> {
 
   if (env.DEV_MODE) {
     logger.warn('DEV_MODE aktiv — In-Memory-Datenspeicher (nicht persistent)');
-    instance = new MemoryDataStore();
+    const memory = new MemoryDataStore();
+    if (env.DEV_SEED) {
+      const { seedDemoData } = await import('./memory/seed.js');
+      await seedDemoData(memory);
+      logger.info('Demo-Daten geladen (DEV_SEED=true)');
+    }
+    instance = memory;
     return instance;
   }
 

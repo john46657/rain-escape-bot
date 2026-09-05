@@ -27,8 +27,18 @@ export interface VerificationTicket {
 /** Gueltigkeitsdauer eines Verifizierungscodes. */
 export const VERIFICATION_TTL_MS = 15 * MINUTE;
 
+/**
+ * Abhaengigkeiten der Verifizierung.
+ *
+ * Bewusst schmaler als `Services`: die API besitzt keinen Discord-Client.
+ * Fehlt er, entfaellt lediglich das Setzen von Rollen/Nickname — der Bot
+ * holt das beim naechsten Sync nach.
+ */
+export type VerificationDeps = Pick<Services, 'store' | 'roblox' | 'log' | 'publish'> &
+  Partial<Pick<Services, 'client' | 'guildContext'>>;
+
 export class VerificationService {
-  constructor(private readonly services: Services) {}
+  constructor(private readonly services: VerificationDeps) {}
 
   /**
    * Erstellt einen neuen Einmalcode.
@@ -112,8 +122,8 @@ export class VerificationService {
         metadata: { username: robloxUsername },
       });
 
-      // Rollen und Nickname im Zielserver setzen (best effort).
-      if (candidate.guildId) {
+      // Rollen und Nickname im Zielserver setzen (best effort, nur im Bot-Prozess).
+      if (candidate.guildId && this.services.client && this.services.guildContext) {
         const guild = this.services.client.guilds.cache.get(candidate.guildId);
         if (guild) await this.applyVerifiedState(guild, candidate.discordId, account).catch(() => undefined);
       }
@@ -130,6 +140,7 @@ export class VerificationService {
 
   /** Setzt die verifizierte Rolle und den Nickname gemaess Guild-Konfiguration. */
   async applyVerifiedState(guild: Guild, discordId: string, account: RobloxAccountEntity): Promise<void> {
+    if (!this.services.guildContext) return;
     const config = await this.services.guildContext.config(guild.id);
     const member = await guild.members.fetch(discordId).catch(() => null);
     if (!member) return;

@@ -6,8 +6,10 @@ import type { Services } from './container.js';
  * Schreibt einen Audit-Eintrag (Regel 34) und veroeffentlicht ihn fuer das
  * Dashboard. Metadaten werden vor dem Speichern von Secrets bereinigt.
  */
+export type AuditDeps = Pick<Services, 'store' | 'log' | 'publish'>;
+
 export async function writeAudit(
-  services: Services,
+  services: AuditDeps,
   entry: Omit<AuditLogEntity, 'id' | 'createdAt' | 'metadata'> & { metadata?: Record<string, unknown> },
 ): Promise<void> {
   const metadata = redact(entry.metadata ?? {});
