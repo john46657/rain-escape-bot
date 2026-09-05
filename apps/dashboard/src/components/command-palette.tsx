@@ -3,8 +3,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Activity, BarChart3, Coins, FileClock, Gamepad2, KeyRound, LayoutDashboard,
-  Search, Settings, Shield, Ticket,
+  Activity,
+  BarChart3,
+  Coins,
+  FileClock,
+  Gamepad2,
+  KeyRound,
+  LayoutDashboard,
+  Search,
+  Settings,
+  Shield,
+  Ticket,
 } from 'lucide-react';
 
 interface Command {
@@ -30,16 +39,86 @@ export function CommandPalette({ guildId }: { guildId: string }) {
   const commands = useMemo<Command[]>(() => {
     const base = `/g/${guildId}`;
     return [
-      { id: 'overview', label: 'Uebersicht oeffnen', hint: 'Dashboard', icon: LayoutDashboard, href: base, keywords: 'start home uebersicht dashboard' },
-      { id: 'moderation', label: 'Moderationsfaelle', hint: 'Faelle & Verwarnungen', icon: Shield, href: `${base}/moderation`, keywords: 'ban kick warn faelle historie' },
-      { id: 'security', label: 'Sicherheitszentrale', hint: 'Vorfaelle & AutoMod', icon: Activity, href: `${base}/security`, keywords: 'antinuke automod incidents lockdown raid' },
-      { id: 'tickets', label: 'Tickets', hint: 'Support-Anfragen', icon: Ticket, href: `${base}/tickets`, keywords: 'support ticket anfragen' },
-      { id: 'roblox', label: 'Roblox-Server', hint: 'Spiele & Instanzen', icon: Gamepad2, href: `${base}/roblox`, keywords: 'roblox game universe server jobid' },
-      { id: 'engagement', label: 'Level & Wirtschaft', hint: 'Ranglisten', icon: Coins, href: `${base}/engagement`, keywords: 'xp level economy muenzen leaderboard' },
-      { id: 'analytics', label: 'Analytics', hint: 'Kennzahlen', icon: BarChart3, href: `${base}/analytics`, keywords: 'statistik metriken wachstum' },
-      { id: 'audit', label: 'Audit-Log', hint: 'Wer hat was getan', icon: FileClock, href: `${base}/audit`, keywords: 'audit protokoll log verlauf' },
-      { id: 'settings', label: 'Einstellungen', hint: 'Module & Kanaele', icon: Settings, href: `${base}/settings`, keywords: 'config einstellungen module sprache' },
-      { id: 'developers', label: 'Entwicklerportal', hint: 'API-Keys & Webhooks', icon: KeyRound, href: `${base}/developers`, keywords: 'api key token webhook entwickler' },
+      {
+        id: 'overview',
+        label: 'Uebersicht oeffnen',
+        hint: 'Dashboard',
+        icon: LayoutDashboard,
+        href: base,
+        keywords: 'start home uebersicht dashboard',
+      },
+      {
+        id: 'moderation',
+        label: 'Moderationsfaelle',
+        hint: 'Faelle & Verwarnungen',
+        icon: Shield,
+        href: `${base}/moderation`,
+        keywords: 'ban kick warn faelle historie',
+      },
+      {
+        id: 'security',
+        label: 'Sicherheitszentrale',
+        hint: 'Vorfaelle & AutoMod',
+        icon: Activity,
+        href: `${base}/security`,
+        keywords: 'antinuke automod incidents lockdown raid',
+      },
+      {
+        id: 'tickets',
+        label: 'Tickets',
+        hint: 'Support-Anfragen',
+        icon: Ticket,
+        href: `${base}/tickets`,
+        keywords: 'support ticket anfragen',
+      },
+      {
+        id: 'roblox',
+        label: 'Roblox-Server',
+        hint: 'Spiele & Instanzen',
+        icon: Gamepad2,
+        href: `${base}/roblox`,
+        keywords: 'roblox game universe server jobid',
+      },
+      {
+        id: 'engagement',
+        label: 'Level & Wirtschaft',
+        hint: 'Ranglisten',
+        icon: Coins,
+        href: `${base}/engagement`,
+        keywords: 'xp level economy muenzen leaderboard',
+      },
+      {
+        id: 'analytics',
+        label: 'Analytics',
+        hint: 'Kennzahlen',
+        icon: BarChart3,
+        href: `${base}/analytics`,
+        keywords: 'statistik metriken wachstum',
+      },
+      {
+        id: 'audit',
+        label: 'Audit-Log',
+        hint: 'Wer hat was getan',
+        icon: FileClock,
+        href: `${base}/audit`,
+        keywords: 'audit protokoll log verlauf',
+      },
+      {
+        id: 'settings',
+        label: 'Einstellungen',
+        hint: 'Module & Kanaele',
+        icon: Settings,
+        href: `${base}/settings`,
+        keywords: 'config einstellungen module sprache',
+      },
+      {
+        id: 'developers',
+        label: 'Entwicklerportal',
+        hint: 'API-Keys & Webhooks',
+        icon: KeyRound,
+        href: `${base}/developers`,
+        keywords: 'api key token webhook entwickler',
+      },
     ];
   }, [guildId]);
 
@@ -117,7 +196,9 @@ export function CommandPalette({ guildId }: { guildId: string }) {
             placeholder="Befehl oder Seite suchen…"
             className="w-full bg-transparent py-3.5 text-sm text-slate-100 outline-none placeholder:text-slate-600"
           />
-          <kbd className="rounded border border-base-700 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">ESC</kbd>
+          <kbd className="rounded border border-base-700 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">
+            ESC
+          </kbd>
         </div>
 
         <ul className="max-h-80 overflow-y-auto p-2">

@@ -42,8 +42,16 @@ const balance: SlashCommand = {
           .setThumbnail(user.displayAvatarURL({ size: 128 }))
           .addFields(
             { name: t('economy.wallet'), value: formatMoney(profile.wallet, symbol), inline: true },
-            { name: t('economy.bank'), value: `${formatMoney(profile.bank, symbol)} / ${profile.bankCapacity}`, inline: true },
-            { name: t('economy.total'), value: formatMoney(profile.wallet + profile.bank, symbol), inline: true },
+            {
+              name: t('economy.bank'),
+              value: `${formatMoney(profile.bank, symbol)} / ${profile.bankCapacity}`,
+              inline: true,
+            },
+            {
+              name: t('economy.total'),
+              value: formatMoney(profile.wallet + profile.bank, symbol),
+              inline: true,
+            },
           ),
       ],
     });
@@ -86,12 +94,21 @@ const daily: SlashCommand = {
       reason: `Tagesbelohnung (Streak ${streakDays})`,
       idempotencyKey: `daily:${guildId}:${interaction.user.id}:${dayKey}`,
     });
-    await services.store.economy.touchCooldown(guildId, interaction.user.id, 'lastDailyAt', new Date(), streakDays);
+    await services.store.economy.touchCooldown(
+      guildId,
+      interaction.user.id,
+      'lastDailyAt',
+      new Date(),
+      streakDays,
+    );
 
     await interaction.reply({
       embeds: [
         embeds.success(
-          t('economy.dailyClaimed', { amount: formatMoney(amount, config?.currencySymbol ?? '⬢'), streak: streakDays }),
+          t('economy.dailyClaimed', {
+            amount: formatMoney(amount, config?.currencySymbol ?? '⬢'),
+            streak: streakDays,
+          }),
         ),
       ],
     });
@@ -149,7 +166,9 @@ const pay: SlashCommand = {
     .setName('pay')
     .setDescription('Ueberweist Muenzen an einen anderen Nutzer')
     .addUserOption((option) => option.setName('user').setDescription('Empfaenger').setRequired(true))
-    .addIntegerOption((option) => option.setName('amount').setDescription('Betrag').setRequired(true).setMinValue(1)),
+    .addIntegerOption((option) =>
+      option.setName('amount').setDescription('Betrag').setRequired(true).setMinValue(1),
+    ),
   execute: async ({ interaction, services, t, config }) => {
     const target = interaction.options.getUser('user', true);
     const amount = interaction.options.getInteger('amount', true);
@@ -167,7 +186,10 @@ const pay: SlashCommand = {
     await interaction.reply({
       embeds: [
         embeds.success(
-          t('economy.paySuccess', { user: `<@${target.id}>`, amount: formatMoney(amount, config?.currencySymbol ?? '⬢') }),
+          t('economy.paySuccess', {
+            user: `<@${target.id}>`,
+            amount: formatMoney(amount, config?.currencySymbol ?? '⬢'),
+          }),
         ),
       ],
     });
@@ -180,19 +202,31 @@ const deposit: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('deposit')
     .setDescription('Zahlt Muenzen auf die Bank ein')
-    .addIntegerOption((option) => option.setName('amount').setDescription('Betrag').setRequired(true).setMinValue(1)),
+    .addIntegerOption((option) =>
+      option.setName('amount').setDescription('Betrag').setRequired(true).setMinValue(1),
+    ),
   execute: async ({ interaction, services, config }) => {
     const amount = interaction.options.getInteger('amount', true);
     const guildId = interaction.guildId!;
     const key = `deposit:${uuid()}`;
     // Zwei Buchungen, damit beide Salden korrekt protokolliert werden.
     await services.store.economy.mutate({
-      guildId, userId: interaction.user.id, target: 'wallet', amount: -amount,
-      type: 'DEPOSIT', reason: 'Einzahlung', idempotencyKey: `${key}:out`,
+      guildId,
+      userId: interaction.user.id,
+      target: 'wallet',
+      amount: -amount,
+      type: 'DEPOSIT',
+      reason: 'Einzahlung',
+      idempotencyKey: `${key}:out`,
     });
     await services.store.economy.mutate({
-      guildId, userId: interaction.user.id, target: 'bank', amount,
-      type: 'DEPOSIT', reason: 'Einzahlung', idempotencyKey: `${key}:in`,
+      guildId,
+      userId: interaction.user.id,
+      target: 'bank',
+      amount,
+      type: 'DEPOSIT',
+      reason: 'Einzahlung',
+      idempotencyKey: `${key}:in`,
     });
     await interaction.reply({
       embeds: [embeds.success(`${formatMoney(amount, config?.currencySymbol ?? '⬢')} eingezahlt.`)],
@@ -206,18 +240,30 @@ const withdraw: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('withdraw')
     .setDescription('Hebt Muenzen von der Bank ab')
-    .addIntegerOption((option) => option.setName('amount').setDescription('Betrag').setRequired(true).setMinValue(1)),
+    .addIntegerOption((option) =>
+      option.setName('amount').setDescription('Betrag').setRequired(true).setMinValue(1),
+    ),
   execute: async ({ interaction, services, config }) => {
     const amount = interaction.options.getInteger('amount', true);
     const guildId = interaction.guildId!;
     const key = `withdraw:${uuid()}`;
     await services.store.economy.mutate({
-      guildId, userId: interaction.user.id, target: 'bank', amount: -amount,
-      type: 'WITHDRAW', reason: 'Auszahlung', idempotencyKey: `${key}:out`,
+      guildId,
+      userId: interaction.user.id,
+      target: 'bank',
+      amount: -amount,
+      type: 'WITHDRAW',
+      reason: 'Auszahlung',
+      idempotencyKey: `${key}:out`,
     });
     await services.store.economy.mutate({
-      guildId, userId: interaction.user.id, target: 'wallet', amount,
-      type: 'WITHDRAW', reason: 'Auszahlung', idempotencyKey: `${key}:in`,
+      guildId,
+      userId: interaction.user.id,
+      target: 'wallet',
+      amount,
+      type: 'WITHDRAW',
+      reason: 'Auszahlung',
+      idempotencyKey: `${key}:in`,
     });
     await interaction.reply({
       embeds: [embeds.success(`${formatMoney(amount, config?.currencySymbol ?? '⬢')} abgehoben.`)],
@@ -236,7 +282,9 @@ const shop: SlashCommand = {
       sub
         .setName('buy')
         .setDescription('Kauft einen Artikel')
-        .addStringOption((option) => option.setName('item').setDescription('Artikelschluessel').setRequired(true).setAutocomplete(true))
+        .addStringOption((option) =>
+          option.setName('item').setDescription('Artikelschluessel').setRequired(true).setAutocomplete(true),
+        )
         .addIntegerOption((option) => option.setName('amount').setDescription('Menge').setMinValue(1)),
     ),
   autocomplete: async ({ interaction, services }) => {
@@ -338,7 +386,10 @@ const richest: SlashCommand = {
         embeds.primary(
           '💰 Vermoegensrangliste',
           entries
-            .map((entry) => `**${entry.rank}.** <@${entry.userId}> — ${formatMoney(entry.wallet + entry.bank, symbol)}`)
+            .map(
+              (entry) =>
+                `**${entry.rank}.** <@${entry.userId}> — ${formatMoney(entry.wallet + entry.bank, symbol)}`,
+            )
             .join('\n') || 'Noch keine Daten.',
         ),
       ],
@@ -365,9 +416,13 @@ const economyAdmin: SlashCommand = {
       sub
         .setName('additem')
         .setDescription('Legt einen Shop-Artikel an')
-        .addStringOption((option) => option.setName('key').setDescription('Eindeutiger Schluessel').setRequired(true))
+        .addStringOption((option) =>
+          option.setName('key').setDescription('Eindeutiger Schluessel').setRequired(true),
+        )
         .addStringOption((option) => option.setName('name').setDescription('Name').setRequired(true))
-        .addIntegerOption((option) => option.setName('price').setDescription('Preis').setRequired(true).setMinValue(0))
+        .addIntegerOption((option) =>
+          option.setName('price').setDescription('Preis').setRequired(true).setMinValue(0),
+        )
         .addStringOption((option) => option.setName('description').setDescription('Beschreibung'))
         .addRoleOption((option) => option.setName('role').setDescription('Rolle (fuer Rollenartikel)')),
     ),
@@ -377,12 +432,19 @@ const economyAdmin: SlashCommand = {
       const user = interaction.options.getUser('user', true);
       const amount = interaction.options.getInteger('amount', true);
       await services.store.economy.mutate({
-        guildId, userId: user.id, target: 'wallet', amount,
-        type: 'ADMIN_ADJUST', reason: `Admin-Anpassung durch ${interaction.user.tag}`,
-        idempotencyKey: `admin:${uuid()}`, allowNegative: true,
+        guildId,
+        userId: user.id,
+        target: 'wallet',
+        amount,
+        type: 'ADMIN_ADJUST',
+        reason: `Admin-Anpassung durch ${interaction.user.tag}`,
+        idempotencyKey: `admin:${uuid()}`,
+        allowNegative: true,
       });
       await interaction.reply({
-        embeds: [embeds.success(`${formatMoney(amount, config?.currencySymbol ?? '⬢')} fuer <@${user.id}> gebucht.`)],
+        embeds: [
+          embeds.success(`${formatMoney(amount, config?.currencySymbol ?? '⬢')} fuer <@${user.id}> gebucht.`),
+        ],
       });
       return;
     }
@@ -404,7 +466,9 @@ const economyAdmin: SlashCommand = {
       tradable: !role,
       enabled: true,
     });
-    await interaction.reply({ embeds: [embeds.success(`Artikel **${item.name}** angelegt (\`${item.key}\`).`)] });
+    await interaction.reply({
+      embeds: [embeds.success(`Artikel **${item.name}** angelegt (\`${item.key}\`).`)],
+    });
   },
 };
 

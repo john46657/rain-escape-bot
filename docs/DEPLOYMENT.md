@@ -100,21 +100,21 @@ gesichert werden.
 
 ## Ueberwachung
 
-| Pruefung | Aufruf | Erwartung |
-| --- | --- | --- |
-| API lebt | `GET /health/live` | 200 |
-| API bereit | `GET /health/ready` | 200 und `status: ok` |
-| Bot laeuft | Container-Healthcheck | Prozess vorhanden |
+| Pruefung   | Aufruf                | Erwartung            |
+| ---------- | --------------------- | -------------------- |
+| API lebt   | `GET /health/live`    | 200                  |
+| API bereit | `GET /health/ready`   | 200 und `status: ok` |
+| Bot laeuft | Container-Healthcheck | Prozess vorhanden    |
 
 Beobachtenswerte Logzeilen: `level=error`, `msg="Job fehlgeschlagen"`,
 `msg="Anti-Nuke ausgeloest"`, `msg="Roblox-Anfrage abgelehnt"`.
 
 ## Haeufige Probleme
 
-| Symptom | Ursache | Loesung |
-| --- | --- | --- |
-| Befehle erscheinen nicht | Nicht registriert oder globale Verteilung laeuft noch | `npm run deploy:commands`, fuer Tests `DISCORD_DEV_GUILD_ID` setzen |
-| „Used disallowed intents“ | Privileged Intents nicht aktiviert | Developer Portal → Bot → Intents |
-| Dashboard zeigt keine Daten | API nicht erreichbar | `API_INTERNAL_URL` pruefen, `/health/ready` aufrufen |
-| Roblox: `signature_invalid` | Secret oder Pfad falsch, Proxy veraendert den Koerper | siehe `docs/ROBLOX.md` |
-| Bot startet nicht | Pflichtvariablen fehlen | Fehlermeldung nennt das Feld; `.env.example` vergleichen |
+| Symptom                     | Ursache                                               | Loesung                                                             |
+| --------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------- |
+| Befehle erscheinen nicht    | Nicht registriert oder globale Verteilung laeuft noch | `npm run deploy:commands`, fuer Tests `DISCORD_DEV_GUILD_ID` setzen |
+| „Used disallowed intents“   | Privileged Intents nicht aktiviert                    | Developer Portal → Bot → Intents                                    |
+| Dashboard zeigt keine Daten | API nicht erreichbar                                  | `API_INTERNAL_URL` pruefen, `/health/ready` aufrufen                |
+| Roblox: `signature_invalid` | Secret oder Pfad falsch, Proxy veraendert den Koerper | siehe `docs/ROBLOX.md`                                              |
+| Bot startet nicht           | Pflichtvariablen fehlen                               | Fehlermeldung nennt das Feld; `.env.example` vergleichen            |

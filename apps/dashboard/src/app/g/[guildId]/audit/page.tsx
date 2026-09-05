@@ -29,7 +29,8 @@ export default async function AuditPage({ params }: { params: Promise<{ guildId:
       <header>
         <h1 className="text-xl font-semibold text-slate-100">Audit-Log</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Wer hat was wann getan — inklusive Aktionen aus Dashboard, API und Roblox. Eintraege sind unveraenderlich.
+          Wer hat was wann getan — inklusive Aktionen aus Dashboard, API und Roblox. Eintraege sind
+          unveraenderlich.
         </p>
       </header>
 
@@ -55,7 +56,10 @@ export default async function AuditPage({ params }: { params: Promise<{ guildId:
             ))}
           </Table>
         ) : (
-          <EmptyState title="Kein Audit-Eintrag" description="Sicherheitsrelevante Aktionen werden hier revisionssicher protokolliert." />
+          <EmptyState
+            title="Kein Audit-Eintrag"
+            description="Sicherheitsrelevante Aktionen werden hier revisionssicher protokolliert."
+          />
         )}
       </Card>
     </div>

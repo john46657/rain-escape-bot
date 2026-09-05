@@ -9,9 +9,18 @@ import { verifySession } from '@nexus/security';
  * wird die Verbindung sofort geschlossen.
  */
 const TOPICS = [
-  'moderation.case', 'security.incident', 'security.automod', 'security.lockdown',
-  'ticket.created', 'ticket.closed', 'roblox.event', 'roblox.heartbeat',
-  'roblox.verified', 'levels.levelup', 'guild.joined', 'config.updated',
+  'moderation.case',
+  'security.incident',
+  'security.automod',
+  'security.lockdown',
+  'ticket.created',
+  'ticket.closed',
+  'roblox.event',
+  'roblox.heartbeat',
+  'roblox.verified',
+  'levels.levelup',
+  'guild.joined',
+  'config.updated',
 ] as const;
 
 export async function registerRealtimeRoutes(app: FastifyInstance): Promise<void> {

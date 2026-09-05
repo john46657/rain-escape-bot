@@ -7,7 +7,12 @@ import { ACTION_STYLES, relativeTime } from '@/lib/format';
 
 interface Overview {
   guild: { name: string; memberCount: number; premiumTier: string };
-  config: { automodEnabled: boolean; antiNukeEnabled: boolean; lockdownActive: boolean; robloxEnabled: boolean };
+  config: {
+    automodEnabled: boolean;
+    antiNukeEnabled: boolean;
+    lockdownActive: boolean;
+    robloxEnabled: boolean;
+  };
   summary: Record<string, number>;
 }
 
@@ -44,12 +49,18 @@ export default async function OverviewPage({ params }: { params: Promise<{ guild
           ) : (
             <Badge className="bg-success/15 text-success">Betrieb normal</Badge>
           )}
-          {overview?.config.robloxEnabled ? <Badge className="bg-roblox/15 text-roblox">Roblox verbunden</Badge> : null}
+          {overview?.config.robloxEnabled ? (
+            <Badge className="bg-roblox/15 text-roblox">Roblox verbunden</Badge>
+          ) : null}
         </div>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Mitglieder" value={(summary['members'] ?? 0).toLocaleString('de-DE')} hint="laut Discord" />
+        <StatCard
+          label="Mitglieder"
+          value={(summary['members'] ?? 0).toLocaleString('de-DE')}
+          hint="laut Discord"
+        />
         <StatCard label="Moderationsfaelle" value={summary['cases'] ?? 0} hint="gesamt" />
         <StatCard
           label="Offene Tickets"
@@ -68,7 +79,10 @@ export default async function OverviewPage({ params }: { params: Promise<{ guild
           title="Letzte Moderationsfaelle"
           className="lg:col-span-2"
           action={
-            <Link href={`/g/${guildId}/moderation`} className="flex items-center gap-1 text-xs text-accent-soft hover:underline">
+            <Link
+              href={`/g/${guildId}/moderation`}
+              className="flex items-center gap-1 text-xs text-accent-soft hover:underline"
+            >
               Alle ansehen <ArrowUpRight className="h-3 w-3" />
             </Link>
           }
@@ -77,7 +91,9 @@ export default async function OverviewPage({ params }: { params: Promise<{ guild
             <ul className="space-y-3">
               {cases.map((entry) => (
                 <li key={entry.caseId} className="flex items-start gap-3">
-                  <Badge className={ACTION_STYLES[entry.action] ?? 'bg-base-700 text-slate-300'}>{entry.action}</Badge>
+                  <Badge className={ACTION_STYLES[entry.action] ?? 'bg-base-700 text-slate-300'}>
+                    {entry.action}
+                  </Badge>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm text-slate-300">{entry.reason}</p>
                     <p className="text-xs text-slate-600">
@@ -103,13 +119,25 @@ export default async function OverviewPage({ params }: { params: Promise<{ guild
           <ul className="space-y-2 text-sm">
             <li className="flex items-center justify-between">
               <span className="text-slate-400">AutoMod</span>
-              <Badge className={overview?.config.automodEnabled ? 'bg-success/15 text-success' : 'bg-base-700 text-slate-400'}>
+              <Badge
+                className={
+                  overview?.config.automodEnabled
+                    ? 'bg-success/15 text-success'
+                    : 'bg-base-700 text-slate-400'
+                }
+              >
                 {overview?.config.automodEnabled ? 'aktiv' : 'aus'}
               </Badge>
             </li>
             <li className="flex items-center justify-between">
               <span className="text-slate-400">Anti-Nuke</span>
-              <Badge className={overview?.config.antiNukeEnabled ? 'bg-success/15 text-success' : 'bg-base-700 text-slate-400'}>
+              <Badge
+                className={
+                  overview?.config.antiNukeEnabled
+                    ? 'bg-success/15 text-success'
+                    : 'bg-base-700 text-slate-400'
+                }
+              >
                 {overview?.config.antiNukeEnabled ? 'aktiv' : 'aus'}
               </Badge>
             </li>
@@ -135,9 +163,14 @@ export default async function OverviewPage({ params }: { params: Promise<{ guild
         </Card>
 
         <Card title="Roblox">
-          <p className="text-3xl font-semibold tabular-nums text-slate-100">{summary['robloxServers'] ?? 0}</p>
+          <p className="text-3xl font-semibold tabular-nums text-slate-100">
+            {summary['robloxServers'] ?? 0}
+          </p>
           <p className="mt-1 text-xs text-slate-500">Serverinstanzen online</p>
-          <Link href={`/g/${guildId}/roblox`} className="mt-4 inline-flex items-center gap-1 text-xs text-accent-soft hover:underline">
+          <Link
+            href={`/g/${guildId}/roblox`}
+            className="mt-4 inline-flex items-center gap-1 text-xs text-accent-soft hover:underline"
+          >
             Spiele verwalten <ArrowUpRight className="h-3 w-3" />
           </Link>
           {(summary['openIncidents'] ?? 0) > 0 ? (

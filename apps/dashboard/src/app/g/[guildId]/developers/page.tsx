@@ -32,8 +32,8 @@ export default async function DevelopersPage({ params }: { params: Promise<{ gui
       <div className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning/5 p-4">
         <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
         <p className="text-xs text-warning/90">
-          NEXUS speichert ausschliesslich den SHA-256-Hash eines Schluessels. Ein verlorener Schluessel kann nicht
-          wiederhergestellt, sondern nur widerrufen und neu erstellt werden.
+          NEXUS speichert ausschliesslich den SHA-256-Hash eines Schluessels. Ein verlorener Schluessel kann
+          nicht wiederhergestellt, sondern nur widerrufen und neu erstellt werden.
         </p>
       </div>
 
@@ -47,7 +47,13 @@ export default async function DevelopersPage({ params }: { params: Promise<{ gui
                   {key.prefix}…{key.last4}
                 </td>
                 <td className="table-cell">
-                  <Badge className={key.environment === 'live' ? 'bg-accent/15 text-accent-soft' : 'bg-base-700 text-slate-400'}>
+                  <Badge
+                    className={
+                      key.environment === 'live'
+                        ? 'bg-accent/15 text-accent-soft'
+                        : 'bg-base-700 text-slate-400'
+                    }
+                  >
                     {key.environment}
                   </Badge>
                 </td>
@@ -74,7 +80,7 @@ export default async function DevelopersPage({ params }: { params: Promise<{ gui
 
       <Card title="Schnellstart">
         <pre className="overflow-x-auto rounded-lg bg-base-950 p-4 font-mono text-xs leading-relaxed text-slate-400">
-{`# Schluessel erstellen (Antwort enthaelt den Klartext genau einmal)
+          {`# Schluessel erstellen (Antwort enthaelt den Klartext genau einmal)
 curl -X POST "$NEXUS_API/api/v1/guilds/${guildId}/keys" \\
   -H 'content-type: application/json' \\
   -d '{"name":"Meine Integration","scopes":["guilds:read","moderation:read"]}'

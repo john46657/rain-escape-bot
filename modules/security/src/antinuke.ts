@@ -13,17 +13,21 @@
  *  - Ohne die Berechtigung "Audit-Log einsehen" ist keine Zuordnung moeglich;
  *    in dem Fall wird nur alarmiert, nicht bestraft.
  */
-import {
-  type AuditLogEvent, type Guild, type GuildAuditLogsEntry, PermissionFlagsBits,
-} from 'discord.js';
+import { type AuditLogEvent, type Guild, type GuildAuditLogsEntry, PermissionFlagsBits } from 'discord.js';
 import { embeds, writeAudit, type Services } from '@nexus/bot-core';
 import type { AntiNukeThresholds } from '@nexus/database';
 import { DEFAULT_ANTINUKE } from '@nexus/database';
 import { MINUTE, type IncidentSeverity } from '@nexus/shared';
 
 export type NukeAction =
-  | 'BAN' | 'KICK' | 'CHANNEL_DELETE' | 'ROLE_DELETE' | 'WEBHOOK_CREATE'
-  | 'ROLE_UPDATE' | 'BOT_ADD' | 'GUILD_UPDATE';
+  | 'BAN'
+  | 'KICK'
+  | 'CHANNEL_DELETE'
+  | 'ROLE_DELETE'
+  | 'WEBHOOK_CREATE'
+  | 'ROLE_UPDATE'
+  | 'BOT_ADD'
+  | 'GUILD_UPDATE';
 
 const THRESHOLD_KEYS: Record<NukeAction, keyof AntiNukeThresholds> = {
   BAN: 'banPerMinute',
@@ -37,8 +41,14 @@ const THRESHOLD_KEYS: Record<NukeAction, keyof AntiNukeThresholds> = {
 };
 
 const SEVERITY_BY_ACTION: Record<NukeAction, IncidentSeverity> = {
-  BAN: 'CRITICAL', KICK: 'HIGH', CHANNEL_DELETE: 'CRITICAL', ROLE_DELETE: 'CRITICAL',
-  WEBHOOK_CREATE: 'HIGH', ROLE_UPDATE: 'MEDIUM', BOT_ADD: 'HIGH', GUILD_UPDATE: 'MEDIUM',
+  BAN: 'CRITICAL',
+  KICK: 'HIGH',
+  CHANNEL_DELETE: 'CRITICAL',
+  ROLE_DELETE: 'CRITICAL',
+  WEBHOOK_CREATE: 'HIGH',
+  ROLE_UPDATE: 'MEDIUM',
+  BOT_ADD: 'HIGH',
+  GUILD_UPDATE: 'MEDIUM',
 };
 
 export class AntiNukeEngine {
@@ -48,7 +58,12 @@ export class AntiNukeEngine {
    * Registriert eine potenziell gefaehrliche Aktion und prueft die Schwelle.
    * Gibt true zurueck, wenn ein Incident ausgeloest wurde.
    */
-  async track(guild: Guild, actorId: string, action: NukeAction, context: Record<string, unknown> = {}): Promise<boolean> {
+  async track(
+    guild: Guild,
+    actorId: string,
+    action: NukeAction,
+    context: Record<string, unknown> = {},
+  ): Promise<boolean> {
     const config = await this.services.guildContext.config(guild.id);
     if (!config.antiNukeEnabled) return false;
 
@@ -65,12 +80,19 @@ export class AntiNukeEngine {
     const limit = thresholds[THRESHOLD_KEYS[action]];
 
     const count = await this.services.cache.slidingWindow(
-      `antinuke:${action}`, `${guild.id}:${actorId}`, `${Date.now()}`, windowMs,
+      `antinuke:${action}`,
+      `${guild.id}:${actorId}`,
+      `${Date.now()}`,
+      windowMs,
     );
     if (count <= limit) return false;
 
     // Ein Incident je Akteur und Aktion pro Fenster — kein Alarm-Spam.
-    const isNew = await this.services.cache.markOnce(`antinuke:incident`, `${guild.id}:${actorId}:${action}`, windowMs);
+    const isNew = await this.services.cache.markOnce(
+      `antinuke:incident`,
+      `${guild.id}:${actorId}:${action}`,
+      windowMs,
+    );
     if (!isNew) return false;
 
     await this.trigger(guild, actorId, action, count, limit, context);
@@ -78,7 +100,11 @@ export class AntiNukeEngine {
   }
 
   private async trigger(
-    guild: Guild, actorId: string, action: NukeAction, count: number, limit: number,
+    guild: Guild,
+    actorId: string,
+    action: NukeAction,
+    count: number,
+    limit: number,
     context: Record<string, unknown>,
   ): Promise<void> {
     const severity = SEVERITY_BY_ACTION[action];
@@ -117,7 +143,12 @@ export class AntiNukeEngine {
     });
 
     this.services.log.security('Anti-Nuke ausgeloest', {
-      guildId: guild.id, userId: actorId, action, count, limit, incidentId: incident.id,
+      guildId: guild.id,
+      userId: actorId,
+      action,
+      count,
+      limit,
+      incidentId: incident.id,
     });
 
     await writeAudit(this.services, {
@@ -134,13 +165,22 @@ export class AntiNukeEngine {
 
     await this.alert(guild, incident.id, actorId, action, count, limit, actionsTaken);
     await this.services.publish('security.incident', {
-      guildId: guild.id, incidentId: incident.id, severity, kind: 'ANTINUKE', actorId,
+      guildId: guild.id,
+      incidentId: incident.id,
+      severity,
+      kind: 'ANTINUKE',
+      actorId,
     });
   }
 
   private async alert(
-    guild: Guild, incidentId: string, actorId: string, action: NukeAction,
-    count: number, limit: number, actionsTaken: string[],
+    guild: Guild,
+    incidentId: string,
+    actorId: string,
+    action: NukeAction,
+    count: number,
+    limit: number,
+    actionsTaken: string[],
   ): Promise<void> {
     const config = await this.services.guildContext.config(guild.id);
     const channelId = config.securityChannelId ?? config.modLogChannelId;
@@ -153,20 +193,18 @@ export class AntiNukeEngine {
       .send({
         content: `<@${guild.ownerId}>`,
         embeds: [
-          embeds
-            .security('Anti-Nuke ausgeloest', `Verdaechtige Massenaktion durch <@${actorId}>.`)
-            .addFields(
-              { name: 'Aktion', value: action, inline: true },
-              { name: 'Anzahl', value: `${count} (Limit ${limit})`, inline: true },
-              { name: 'Incident', value: `\`${incidentId}\``, inline: true },
-              { name: 'Automatische Massnahmen', value: actionsTaken.join('\n') || 'Keine (fehlende Rechte)' },
-              {
-                name: 'Naechste Schritte',
-                value:
-                  '`/security incidents` zum Pruefen · `/security lockdown` bei akutem Angriff\n' +
-                  'Hinweis: Discord erlaubt kein Rueckgaengigmachen bereits ausgefuehrter Aktionen.',
-              },
-            ),
+          embeds.security('Anti-Nuke ausgeloest', `Verdaechtige Massenaktion durch <@${actorId}>.`).addFields(
+            { name: 'Aktion', value: action, inline: true },
+            { name: 'Anzahl', value: `${count} (Limit ${limit})`, inline: true },
+            { name: 'Incident', value: `\`${incidentId}\``, inline: true },
+            { name: 'Automatische Massnahmen', value: actionsTaken.join('\n') || 'Keine (fehlende Rechte)' },
+            {
+              name: 'Naechste Schritte',
+              value:
+                '`/security incidents` zum Pruefen · `/security lockdown` bei akutem Angriff\n' +
+                'Hinweis: Discord erlaubt kein Rueckgaengigmachen bereits ausgefuehrter Aktionen.',
+            },
+          ),
         ],
       })
       .catch(() => undefined);
@@ -178,7 +216,9 @@ export class AntiNukeEngine {
    * ist keine Zuordnung moeglich (dann null).
    */
   async resolveExecutor(
-    guild: Guild, type: AuditLogEvent, targetId?: string,
+    guild: Guild,
+    type: AuditLogEvent,
+    targetId?: string,
   ): Promise<GuildAuditLogsEntry | null> {
     if (!guild.members.me?.permissions.has(PermissionFlagsBits.ViewAuditLog)) return null;
     const logs = await guild.fetchAuditLogs({ type, limit: 5 }).catch(() => null);

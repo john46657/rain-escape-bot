@@ -41,12 +41,17 @@ export default async function SecurityPage({ params }: { params: Promise<{ guild
       <header>
         <h1 className="text-xl font-semibold text-slate-100">Sicherheitszentrale</h1>
         <p className="mt-1 text-sm text-slate-500">
-          AutoMod, Anti-Nuke und Notfallmodus. Kritische Aktionen erfordern eine ausdrueckliche Bestaetigung im Bot.
+          AutoMod, Anti-Nuke und Notfallmodus. Kritische Aktionen erfordern eine ausdrueckliche Bestaetigung
+          im Bot.
         </p>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-4">
-        <StatCard label="Offene Vorfaelle" value={open.length} tone={open.length > 0 ? 'danger' : 'success'} />
+        <StatCard
+          label="Offene Vorfaelle"
+          value={open.length}
+          tone={open.length > 0 ? 'danger' : 'success'}
+        />
         <StatCard label="AutoMod-Regeln" value={rules.length} hint="aktiv" />
         <StatCard
           label="Anti-Nuke"
@@ -90,7 +95,10 @@ export default async function SecurityPage({ params }: { params: Promise<{ guild
               ))}
             </ul>
           ) : (
-            <EmptyState title="Keine Vorfaelle" description="NEXUS meldet hier automatisch Raids, Nuke-Versuche und AutoMod-Treffer." />
+            <EmptyState
+              title="Keine Vorfaelle"
+              description="NEXUS meldet hier automatisch Raids, Nuke-Versuche und AutoMod-Treffer."
+            />
           )}
         </Card>
 
@@ -98,7 +106,10 @@ export default async function SecurityPage({ params }: { params: Promise<{ guild
           {rules.length > 0 ? (
             <ul className="space-y-2 text-sm">
               {rules.map(([name, rule]) => (
-                <li key={name} className="flex items-center justify-between gap-2 rounded-lg bg-base-850/50 px-3 py-2">
+                <li
+                  key={name}
+                  className="flex items-center justify-between gap-2 rounded-lg bg-base-850/50 px-3 py-2"
+                >
                   <span className="font-mono text-xs text-slate-300">{name}</span>
                   <Badge className="bg-accent/10 text-accent-soft">{rule?.action}</Badge>
                 </li>
@@ -109,8 +120,8 @@ export default async function SecurityPage({ params }: { params: Promise<{ guild
           )}
           <p className="mt-4 flex gap-2 rounded-lg bg-warning/10 p-3 text-xs text-warning">
             <AlertTriangle className="h-4 w-4 shrink-0" />
-            Discord erlaubt kein Rueckgaengigmachen bereits ausgefuehrter Aktionen. NEXUS entmachtet Angreifer,
-            sperrt den Server und alarmiert — eine Wiederherstellung erfolgt ueber Backups.
+            Discord erlaubt kein Rueckgaengigmachen bereits ausgefuehrter Aktionen. NEXUS entmachtet
+            Angreifer, sperrt den Server und alarmiert — eine Wiederherstellung erfolgt ueber Backups.
           </p>
         </Card>
       </div>

@@ -11,7 +11,12 @@ export const LOG_LEVELS = ['debug', 'info', 'warn', 'error', 'security', 'audit'
 export type LogLevel = (typeof LOG_LEVELS)[number];
 
 const SEVERITY: Record<LogLevel, number> = {
-  debug: 10, info: 20, warn: 30, error: 40, security: 50, audit: 50,
+  debug: 10,
+  info: 20,
+  warn: 30,
+  error: 40,
+  security: 50,
+  audit: 50,
 };
 
 export interface LogContext extends Record<string, unknown> {
@@ -53,8 +58,12 @@ function sanitize(context: LogContext): LogContext {
 }
 
 const COLORS: Record<LogLevel, string> = {
-  debug: '\x1b[90m', info: '\x1b[36m', warn: '\x1b[33m',
-  error: '\x1b[31m', security: '\x1b[35m', audit: '\x1b[32m',
+  debug: '\x1b[90m',
+  info: '\x1b[36m',
+  warn: '\x1b[33m',
+  error: '\x1b[31m',
+  security: '\x1b[35m',
+  audit: '\x1b[32m',
 };
 
 export class Logger {
@@ -83,19 +92,29 @@ export class Logger {
     });
   }
 
-  debug(msg: string, context?: LogContext): void { this.write('debug', msg, context); }
-  info(msg: string, context?: LogContext): void { this.write('info', msg, context); }
-  warn(msg: string, context?: LogContext): void { this.write('warn', msg, context); }
+  debug(msg: string, context?: LogContext): void {
+    this.write('debug', msg, context);
+  }
+  info(msg: string, context?: LogContext): void {
+    this.write('info', msg, context);
+  }
+  warn(msg: string, context?: LogContext): void {
+    this.write('warn', msg, context);
+  }
 
   error(msg: string, error?: unknown, context?: LogContext): void {
     this.write('error', msg, context, error);
   }
 
   /** Sicherheitsrelevante Ereignisse (Anti-Nuke, Signaturfehler, Lockdown). */
-  security(msg: string, context?: LogContext): void { this.write('security', msg, context); }
+  security(msg: string, context?: LogContext): void {
+    this.write('security', msg, context);
+  }
 
   /** Administrative Aktionen (Regel 34). */
-  audit(msg: string, context?: LogContext): void { this.write('audit', msg, context); }
+  audit(msg: string, context?: LogContext): void {
+    this.write('audit', msg, context);
+  }
 
   private write(level: LogLevel, msg: string, context?: LogContext, error?: unknown): void {
     if (SEVERITY[level] < SEVERITY[this.level]) return;
@@ -129,7 +148,9 @@ export class Logger {
     const reset = '\x1b[0m';
     const time = entry.time.slice(11, 23);
     const ctx = Object.keys(entry.context).length
-      ? ` \x1b[90m${Object.entries(entry.context).map(([k, v]) => `${k}=${String(v)}`).join(' ')}${reset}`
+      ? ` \x1b[90m${Object.entries(entry.context)
+          .map(([k, v]) => `${k}=${String(v)}`)
+          .join(' ')}${reset}`
       : '';
     const err = entry.err ? `\n${entry.err.stack ?? entry.err.message}` : '';
     return `${color}${entry.level.toUpperCase().padEnd(8)}${reset}\x1b[90m${time}${reset} \x1b[1m${entry.name}${reset} ${entry.msg}${ctx}${err}\n`;

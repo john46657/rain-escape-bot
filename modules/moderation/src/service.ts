@@ -7,16 +7,24 @@
  * Der Fall wird erst nach erfolgreicher Discord-Aktion geschrieben, damit
  * die Historie keine Aktionen enthaelt, die nie stattgefunden haben.
  */
+import { type Guild, type GuildMember, PermissionFlagsBits, type User } from 'discord.js';
 import {
-  type Guild, type GuildMember, PermissionFlagsBits, type User,
-} from 'discord.js';
-import {
-  MODERATION_PERMISSIONS, assertBotPermission, assertModeratable, embeds, tryDirectMessage,
-  wrapDiscordError, writeAudit, type Services,
+  MODERATION_PERMISSIONS,
+  assertBotPermission,
+  assertModeratable,
+  embeds,
+  tryDirectMessage,
+  wrapDiscordError,
+  writeAudit,
+  type Services,
 } from '@nexus/bot-core';
 import type { ModerationCaseEntity } from '@nexus/database';
 import {
-  LIMITS, PreconditionError, type ModerationAction, discordTimestamp, formatDuration,
+  LIMITS,
+  PreconditionError,
+  type ModerationAction,
+  discordTimestamp,
+  formatDuration,
 } from '@nexus/shared';
 
 export interface ModerationRequest {
@@ -39,17 +47,41 @@ export interface ModerationRequest {
 }
 
 const ACTION_LABELS: Record<ModerationAction, string> = {
-  BAN: 'Bann', UNBAN: 'Entbannung', SOFTBAN: 'Softban', KICK: 'Kick',
-  TIMEOUT: 'Timeout', UNTIMEOUT: 'Timeout aufgehoben', WARN: 'Verwarnung',
-  UNWARN: 'Verwarnung entfernt', CLEAR: 'Nachrichten geloescht', SLOWMODE: 'Slowmode',
-  LOCK: 'Kanal gesperrt', UNLOCK: 'Kanal entsperrt', NICK: 'Nickname geaendert',
-  ROLE_ADD: 'Rolle hinzugefuegt', ROLE_REMOVE: 'Rolle entfernt', NOTE: 'Notiz',
+  BAN: 'Bann',
+  UNBAN: 'Entbannung',
+  SOFTBAN: 'Softban',
+  KICK: 'Kick',
+  TIMEOUT: 'Timeout',
+  UNTIMEOUT: 'Timeout aufgehoben',
+  WARN: 'Verwarnung',
+  UNWARN: 'Verwarnung entfernt',
+  CLEAR: 'Nachrichten geloescht',
+  SLOWMODE: 'Slowmode',
+  LOCK: 'Kanal gesperrt',
+  UNLOCK: 'Kanal entsperrt',
+  NICK: 'Nickname geaendert',
+  ROLE_ADD: 'Rolle hinzugefuegt',
+  ROLE_REMOVE: 'Rolle entfernt',
+  NOTE: 'Notiz',
 };
 
 const ACTION_EMOJI: Record<ModerationAction, string> = {
-  BAN: '🔨', UNBAN: '♻️', SOFTBAN: '🧹', KICK: '👢', TIMEOUT: '🔇', UNTIMEOUT: '🔊',
-  WARN: '⚠️', UNWARN: '✅', CLEAR: '🗑️', SLOWMODE: '🐌', LOCK: '🔒', UNLOCK: '🔓',
-  NICK: '🏷️', ROLE_ADD: '➕', ROLE_REMOVE: '➖', NOTE: '📝',
+  BAN: '🔨',
+  UNBAN: '♻️',
+  SOFTBAN: '🧹',
+  KICK: '👢',
+  TIMEOUT: '🔇',
+  UNTIMEOUT: '🔊',
+  WARN: '⚠️',
+  UNWARN: '✅',
+  CLEAR: '🗑️',
+  SLOWMODE: '🐌',
+  LOCK: '🔒',
+  UNLOCK: '🔓',
+  NICK: '🏷️',
+  ROLE_ADD: '➕',
+  ROLE_REMOVE: '➖',
+  NOTE: '📝',
 };
 
 export class ModerationService {
@@ -140,7 +172,8 @@ export class ModerationService {
   }
 
   private static async applyDiscordAction(
-    request: ModerationRequest, targetMember: GuildMember | null,
+    request: ModerationRequest,
+    targetMember: GuildMember | null,
   ): Promise<void> {
     const { guild, target, action, reason, moderator } = request;
     const auditReason = `${reason} — ${moderator.user.tag} (NEXUS)`;
@@ -281,7 +314,8 @@ export class ModerationService {
         processed++;
       } catch (error) {
         services.log.error('Ablauf einer Massnahme fehlgeschlagen', error, {
-          guildId: entry.guildId, caseId: entry.caseId,
+          guildId: entry.guildId,
+          caseId: entry.caseId,
         });
       }
     }

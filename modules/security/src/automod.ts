@@ -12,7 +12,14 @@
 import { type GuildMember, type Message, PermissionFlagsBits } from 'discord.js';
 import type { Services } from '@nexus/bot-core';
 import type { AutomodRuleConfig, GuildConfigEntity } from '@nexus/database';
-import { INVITE_PATTERN, capsRatio, extractHosts, isPhishingHost, normalizeForFilter, scamScore } from '@nexus/security';
+import {
+  INVITE_PATTERN,
+  capsRatio,
+  extractHosts,
+  isPhishingHost,
+  normalizeForFilter,
+  scamScore,
+} from '@nexus/security';
 import type { AutomodAction, AutomodRule } from '@nexus/shared';
 
 export interface AutomodViolation {
@@ -25,7 +32,12 @@ export interface AutomodViolation {
 }
 
 const SEVERITY: Record<AutomodAction, number> = {
-  LOG_ONLY: 0, DELETE: 1, WARN: 2, TIMEOUT: 3, KICK: 4, BAN: 5,
+  LOG_ONLY: 0,
+  DELETE: 1,
+  WARN: 2,
+  TIMEOUT: 3,
+  KICK: 4,
+  BAN: 5,
 };
 
 export class AutomodEngine {
@@ -53,21 +65,33 @@ export class AutomodEngine {
     }
 
     if (violations.length === 0) return null;
-    return violations.sort((a, b) => SEVERITY[b.action] - SEVERITY[a.action] || b.confidence - a.confidence)[0]!;
+    return violations.sort(
+      (a, b) => SEVERITY[b.action] - SEVERITY[a.action] || b.confidence - a.confidence,
+    )[0]!;
   }
 
   private async evaluate(
-    rule: AutomodRule, config: AutomodRuleConfig, message: Message, member: GuildMember,
+    rule: AutomodRule,
+    config: AutomodRuleConfig,
+    message: Message,
+    member: GuildMember,
   ): Promise<AutomodViolation | null> {
     const content = message.content ?? '';
     const build = (reason: string, confidence: number): AutomodViolation => ({
-      rule, action: config.action, reason, confidence, timeoutMs: config.timeoutMs,
+      rule,
+      action: config.action,
+      reason,
+      confidence,
+      timeoutMs: config.timeoutMs,
     });
 
     switch (rule) {
       case 'ANTI_SPAM': {
         const count = await this.services.cache.slidingWindow(
-          'automod:spam', `${message.guildId}:${member.id}`, message.id, config.windowSeconds * 1000,
+          'automod:spam',
+          `${message.guildId}:${member.id}`,
+          message.id,
+          config.windowSeconds * 1000,
         );
         return count > config.threshold
           ? build(`Spam erkannt: ${count} Nachrichten in ${config.windowSeconds}s`, 0.9)
@@ -78,7 +102,10 @@ export class AutomodEngine {
         const fingerprint = normalizeForFilter(content).slice(0, 64);
         if (fingerprint.length < 3) return null;
         const count = await this.services.cache.slidingWindow(
-          'automod:flood', `${message.guildId}:${member.id}:${fingerprint}`, message.id, config.windowSeconds * 1000,
+          'automod:flood',
+          `${message.guildId}:${member.id}:${fingerprint}`,
+          message.id,
+          config.windowSeconds * 1000,
         );
         return count > config.threshold ? build(`Identische Nachricht ${count}× wiederholt`, 0.85) : null;
       }
@@ -103,7 +130,10 @@ export class AutomodEngine {
         const mentions = message.mentions.users.size + message.mentions.roles.size;
         if (mentions === 0) return null;
         const total = await this.services.cache.slidingWindow(
-          'automod:mentions', `${message.guildId}:${member.id}`, `${message.id}:${mentions}`, config.windowSeconds * 1000,
+          'automod:mentions',
+          `${message.guildId}:${member.id}`,
+          `${message.id}:${mentions}`,
+          config.windowSeconds * 1000,
         );
         return mentions > config.threshold || total > config.threshold
           ? build(`Mention-Spam (${mentions} Erwaehnungen)`, 0.85)
@@ -111,7 +141,9 @@ export class AutomodEngine {
       }
       case 'ANTI_SCAM': {
         const score = scamScore(content) * 100;
-        return score >= config.threshold ? build(`Scam-Verdacht (Score ${Math.round(score)})`, score / 100) : null;
+        return score >= config.threshold
+          ? build(`Scam-Verdacht (Score ${Math.round(score)})`, score / 100)
+          : null;
       }
       case 'ANTI_PHISHING': {
         const host = extractHosts(content).find((candidate) => isPhishingHost(candidate));
@@ -139,8 +171,13 @@ export class AutomodEngine {
    * damit sie dieselbe Fallhistorie und dieselben Logs erhaelt.
    */
   async enforce(
-    message: Message, violation: AutomodViolation,
-    execute: (action: 'WARN' | 'TIMEOUT' | 'KICK' | 'BAN', reason: string, durationMs?: number) => Promise<void>,
+    message: Message,
+    violation: AutomodViolation,
+    execute: (
+      action: 'WARN' | 'TIMEOUT' | 'KICK' | 'BAN',
+      reason: string,
+      durationMs?: number,
+    ) => Promise<void>,
   ): Promise<void> {
     const reason = `AutoMod (${violation.rule}): ${violation.reason}`;
 

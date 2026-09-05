@@ -17,7 +17,11 @@ function drawWinners(entries: string[], count: number, exclude: string[] = []): 
   return winners;
 }
 
-async function finish(services: Services, giveaway: GiveawayEntity, rerollExclude: string[] = []): Promise<string[]> {
+async function finish(
+  services: Services,
+  giveaway: GiveawayEntity,
+  rerollExclude: string[] = [],
+): Promise<string[]> {
   const winners = drawWinners(giveaway.entries, giveaway.winnerCount, rerollExclude);
   await services.store.giveaways.finish(giveaway.id, winners);
 
@@ -29,7 +33,10 @@ async function finish(services: Services, giveaway: GiveawayEntity, rerollExclud
         content: winners.map((id) => `<@${id}>`).join(' ') || undefined,
         embeds: [
           winners.length > 0
-            ? embeds.success(`**${giveaway.prize}**\n\nGewinner: ${winners.map((id) => `<@${id}>`).join(', ')}`, '🎉 Gewinnspiel beendet')
+            ? embeds.success(
+                `**${giveaway.prize}**\n\nGewinner: ${winners.map((id) => `<@${id}>`).join(', ')}`,
+                '🎉 Gewinnspiel beendet',
+              )
             : embeds.warning('Es gab keine Teilnehmer.', '🎉 Gewinnspiel beendet'),
         ],
       })
@@ -50,9 +57,15 @@ const giveaway: SlashCommand = {
       sub
         .setName('create')
         .setDescription('Startet ein Gewinnspiel')
-        .addStringOption((option) => option.setName('prize').setDescription('Gewinn').setRequired(true).setMaxLength(200))
-        .addStringOption((option) => option.setName('duration').setDescription('Laufzeit, z. B. 2h').setRequired(true))
-        .addIntegerOption((option) => option.setName('winners').setDescription('Anzahl Gewinner').setMinValue(1).setMaxValue(20)),
+        .addStringOption((option) =>
+          option.setName('prize').setDescription('Gewinn').setRequired(true).setMaxLength(200),
+        )
+        .addStringOption((option) =>
+          option.setName('duration').setDescription('Laufzeit, z. B. 2h').setRequired(true),
+        )
+        .addIntegerOption((option) =>
+          option.setName('winners').setDescription('Anzahl Gewinner').setMinValue(1).setMaxValue(20),
+        ),
     )
     .addSubcommand((sub) =>
       sub
@@ -92,12 +105,19 @@ const giveaway: SlashCommand = {
       const message = await interaction.reply({
         embeds: [
           embeds
-            .primary(`🎉 ${prize}`, `Endet ${discordTimestamp(entity.endsAt, 'R')}\nGewinner: **${winnerCount}**`)
+            .primary(
+              `🎉 ${prize}`,
+              `Endet ${discordTimestamp(entity.endsAt, 'R')}\nGewinner: **${winnerCount}**`,
+            )
             .setFooter({ text: `ID ${entity.id.slice(0, 8)} · veranstaltet von ${interaction.user.tag}` }),
         ],
         components: [
           new ActionRowBuilder<ButtonBuilder>().addComponents(
-            new ButtonBuilder().setCustomId(customId('giveaway', 'join', entity.id)).setLabel('Teilnehmen').setEmoji('🎉').setStyle(ButtonStyle.Primary),
+            new ButtonBuilder()
+              .setCustomId(customId('giveaway', 'join', entity.id))
+              .setLabel('Teilnehmen')
+              .setEmoji('🎉')
+              .setStyle(ButtonStyle.Primary),
           ),
         ],
         fetchReply: true,
@@ -113,7 +133,10 @@ const giveaway: SlashCommand = {
           embeds.primary(
             'Laufende Gewinnspiele',
             list
-              .map((entry) => `\`${entry.id.slice(0, 8)}\` **${entry.prize}** — endet ${discordTimestamp(entry.endsAt, 'R')} (${entry.entries.length} Teilnehmer)`)
+              .map(
+                (entry) =>
+                  `\`${entry.id.slice(0, 8)}\` **${entry.prize}** — endet ${discordTimestamp(entry.endsAt, 'R')} (${entry.entries.length} Teilnehmer)`,
+              )
               .join('\n') || 'Keine laufenden Gewinnspiele.',
           ),
         ],
@@ -129,7 +152,11 @@ const giveaway: SlashCommand = {
     await interaction.deferReply({ ephemeral: true });
     const winners = await finish(services, entity, sub === 'reroll' ? entity.winners : []);
     await interaction.editReply({
-      embeds: [embeds.success(winners.length > 0 ? `Gewinner: ${winners.map((w) => `<@${w}>`).join(', ')}` : 'Keine Teilnehmer.')],
+      embeds: [
+        embeds.success(
+          winners.length > 0 ? `Gewinner: ${winners.map((w) => `<@${w}>`).join(', ')}` : 'Keine Teilnehmer.',
+        ),
+      ],
     });
   },
 };
@@ -147,7 +174,10 @@ const giveawaysModule: NexusModule = {
         if (!interaction.isButton()) return;
         const entity = await services.store.giveaways.get(args[1] ?? '');
         if (!entity || entity.ended) {
-          await interaction.reply({ embeds: [embeds.warning('Dieses Gewinnspiel ist beendet.')], ephemeral: true });
+          await interaction.reply({
+            embeds: [embeds.warning('Dieses Gewinnspiel ist beendet.')],
+            ephemeral: true,
+          });
           return;
         }
         const result = await services.store.giveaways.addEntry(entity.id, interaction.user.id);

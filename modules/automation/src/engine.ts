@@ -32,16 +32,26 @@ export function evaluateCondition(condition: AutomationCondition, context: Recor
   const expected = condition.value;
 
   switch (condition.operator) {
-    case 'eq': return actual === expected;
-    case 'neq': return actual !== expected;
-    case 'gt': return Number(actual) > Number(expected);
-    case 'lt': return Number(actual) < Number(expected);
-    case 'gte': return Number(actual) >= Number(expected);
-    case 'lte': return Number(actual) <= Number(expected);
-    case 'contains': return String(actual).toLowerCase().includes(String(expected).toLowerCase());
-    case 'startsWith': return String(actual).toLowerCase().startsWith(String(expected).toLowerCase());
-    case 'in': return Array.isArray(expected) && expected.includes(actual as never);
-    case 'exists': return actual !== undefined && actual !== null;
+    case 'eq':
+      return actual === expected;
+    case 'neq':
+      return actual !== expected;
+    case 'gt':
+      return Number(actual) > Number(expected);
+    case 'lt':
+      return Number(actual) < Number(expected);
+    case 'gte':
+      return Number(actual) >= Number(expected);
+    case 'lte':
+      return Number(actual) <= Number(expected);
+    case 'contains':
+      return String(actual).toLowerCase().includes(String(expected).toLowerCase());
+    case 'startsWith':
+      return String(actual).toLowerCase().startsWith(String(expected).toLowerCase());
+    case 'in':
+      return Array.isArray(expected) && expected.includes(actual as never);
+    case 'exists':
+      return actual !== undefined && actual !== null;
     case 'regex':
       try {
         return new RegExp(String(expected), 'i').test(String(actual));
@@ -65,11 +75,18 @@ export class AutomationEngine {
       if (!automation.conditions.every((condition) => evaluateCondition(condition, event.context))) continue;
 
       // Rate-Limit je Regel: schuetzt vor Schleifen und Missbrauch.
-      const count = await this.services.cache.slidingWindow('automation', automation.id, `${Date.now()}`, HOUR);
+      const count = await this.services.cache.slidingWindow(
+        'automation',
+        automation.id,
+        `${Date.now()}`,
+        HOUR,
+      );
       if (count > automation.rateLimitPerHour) {
         await this.services.store.automations.update(automation.id, { enabled: false });
         this.services.log.warn('Automation wegen Rate-Limit deaktiviert', {
-          guildId: event.guildId, automationId: automation.id, count,
+          guildId: event.guildId,
+          automationId: automation.id,
+          count,
         });
         continue;
       }
@@ -77,11 +94,19 @@ export class AutomationEngine {
       const startedAt = Date.now();
       try {
         for (const action of automation.actions) await this.runAction(automation, action, event);
-        await this.services.store.automations.recordRun(automation.id, 'SUCCESS', { trigger: event.trigger }, Date.now() - startedAt);
+        await this.services.store.automations.recordRun(
+          automation.id,
+          'SUCCESS',
+          { trigger: event.trigger },
+          Date.now() - startedAt,
+        );
         executed++;
       } catch (error) {
         await this.services.store.automations.recordRun(
-          automation.id, 'FAILED', { trigger: event.trigger, error: String(error) }, Date.now() - startedAt,
+          automation.id,
+          'FAILED',
+          { trigger: event.trigger, error: String(error) },
+          Date.now() - startedAt,
         );
         this.services.log.error('Automation fehlgeschlagen', error, { automationId: automation.id });
       }
@@ -90,7 +115,9 @@ export class AutomationEngine {
   }
 
   private async runAction(
-    automation: AutomationEntity, action: AutomationAction, event: AutomationEvent,
+    automation: AutomationEntity,
+    action: AutomationAction,
+    event: AutomationEvent,
   ): Promise<void> {
     const guild = this.services.client.guilds.cache.get(event.guildId);
     if (!guild) return;
@@ -110,7 +137,8 @@ export class AutomationEngine {
         const member = userId ? await guild.members.fetch(userId).catch(() => null) : null;
         const roleId = String(action.params['roleId'] ?? '');
         if (!member || !roleId) return;
-        if (action.type === 'discord.role.add') await member.roles.add(roleId, `Automation ${automation.name}`);
+        if (action.type === 'discord.role.add')
+          await member.roles.add(roleId, `Automation ${automation.name}`);
         else await member.roles.remove(roleId, `Automation ${automation.name}`);
         return;
       }

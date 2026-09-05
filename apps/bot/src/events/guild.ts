@@ -12,7 +12,11 @@ export const guildCreate: EventHandler<Events.GuildCreate> = {
       memberCount: guild.memberCount,
     });
     await services.guildContext.invalidate(guild.id);
-    services.log.info('Server hinzugefuegt', { guildId: guild.id, name: guild.name, members: guild.memberCount });
+    services.log.info('Server hinzugefuegt', {
+      guildId: guild.id,
+      name: guild.name,
+      members: guild.memberCount,
+    });
     await services.publish('guild.joined', { guildId: guild.id, name: guild.name });
   },
 };

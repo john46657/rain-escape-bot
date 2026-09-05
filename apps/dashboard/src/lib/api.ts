@@ -32,7 +32,11 @@ export async function apiGet<T>(path: string, options: { revalidate?: number } =
   }
 }
 
-export async function apiHealth(): Promise<{ status: string; checks?: Record<string, { ok: boolean; driver: string }>; devMode?: boolean } | null> {
+export async function apiHealth(): Promise<{
+  status: string;
+  checks?: Record<string, { ok: boolean; driver: string }>;
+  devMode?: boolean;
+} | null> {
   try {
     const response = await fetch(`${BASE_URL}/health/ready`, { cache: 'no-store' });
     return (await response.json()) as { status: string };

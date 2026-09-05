@@ -19,7 +19,9 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
   app.get('/auth/login', async (request, reply) => {
     if (!env.DISCORD_CLIENT_ID) throw new UnauthorizedError('OAuth ist nicht konfiguriert');
 
-    const state = Buffer.from(JSON.stringify({ nonce: Math.random().toString(36).slice(2), at: Date.now() })).toString('base64url');
+    const state = Buffer.from(
+      JSON.stringify({ nonce: Math.random().toString(36).slice(2), at: Date.now() }),
+    ).toString('base64url');
     await cache.setJson(`oauth:state:${state}`, { ip: request.ip }, 10 * 60_000);
 
     const url = new URL('https://discord.com/oauth2/authorize');
@@ -67,7 +69,11 @@ export async function registerAuthRoutes(app: FastifyInstance): Promise<void> {
     );
     if (!userResponse.ok) throw new UnauthorizedError('Profilabruf fehlgeschlagen');
     const profile = (await userResponse.json()) as {
-      id: string; username: string; global_name?: string; avatar?: string; locale?: string;
+      id: string;
+      username: string;
+      global_name?: string;
+      avatar?: string;
+      locale?: string;
     };
 
     const user = await store.users.upsertFromDiscord({

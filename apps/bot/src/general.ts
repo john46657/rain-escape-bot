@@ -3,7 +3,11 @@
  * Bewusst Teil des Bot-Kerns, da sie kein fachliches Modul benoetigen.
  */
 import {
-  ActionRowBuilder, ChannelType, EmbedBuilder, SlashCommandBuilder, StringSelectMenuBuilder,
+  ActionRowBuilder,
+  ChannelType,
+  EmbedBuilder,
+  SlashCommandBuilder,
+  StringSelectMenuBuilder,
   version as djsVersion,
 } from 'discord.js';
 import { BRAND, discordTimestamp, formatDuration } from '@nexus/shared';
@@ -51,15 +55,13 @@ const help: SlashCommand = {
 
     await interaction.reply({
       embeds: [
-        embeds
-          .primary(t('general.helpTitle'), t('general.helpDescription'))
-          .addFields({
-            name: BRAND.tagline,
-            value:
-              locale === 'de'
-                ? 'NEXUS verbindet deinen Discord-Server mit deinen Roblox-Spielen: Moderation, Sicherheit, Tickets, Level, Wirtschaft, Verifizierung, Live-Server und Automationen.'
-                : 'NEXUS connects your Discord server with your Roblox games: moderation, security, tickets, levels, economy, verification, live servers and automations.',
-          }),
+        embeds.primary(t('general.helpTitle'), t('general.helpDescription')).addFields({
+          name: BRAND.tagline,
+          value:
+            locale === 'de'
+              ? 'NEXUS verbindet deinen Discord-Server mit deinen Roblox-Spielen: Moderation, Sicherheit, Tickets, Level, Wirtschaft, Verifizierung, Live-Server und Automationen.'
+              : 'NEXUS connects your Discord server with your Roblox games: moderation, security, tickets, levels, economy, verification, live servers and automations.',
+        }),
       ],
       components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
     });
@@ -86,13 +88,16 @@ const ping: SlashCommand = {
     const cacheHealthy = await services.cache.healthy();
     const cacheLatency = Date.now() - cacheStart;
 
-    const status = (healthy: boolean, latency: number): string =>
-      `${healthy ? '🟢' : '🔴'} ${latency}ms`;
+    const status = (healthy: boolean, latency: number): string => `${healthy ? '🟢' : '🔴'} ${latency}ms`;
 
     await interaction.editReply({
       embeds: [
         embeds.primary(`🏓 ${t('general.pingTitle')}`).addFields(
-          { name: t('general.pingGateway'), value: `🟢 ${Math.max(0, Math.round(services.client.ws.ping))}ms`, inline: true },
+          {
+            name: t('general.pingGateway'),
+            value: `🟢 ${Math.max(0, Math.round(services.client.ws.ping))}ms`,
+            inline: true,
+          },
           { name: t('general.pingRoundtrip'), value: `🟢 ${Date.now() - sent}ms`, inline: true },
           { name: t('general.pingDatabase'), value: status(dbHealthy, dbLatency), inline: true },
           { name: t('general.pingCache'), value: status(cacheHealthy, cacheLatency), inline: true },
@@ -163,7 +168,11 @@ const serverinfo: SlashCommand = {
             { name: 'Erstellt', value: discordTimestamp(guild.createdAt, 'D'), inline: true },
             { name: 'Mitglieder', value: guild.memberCount.toLocaleString('de-DE'), inline: true },
             { name: 'Rollen', value: String(guild.roles.cache.size), inline: true },
-            { name: 'Boosts', value: `${guild.premiumSubscriptionCount ?? 0} (Stufe ${guild.premiumTier})`, inline: true },
+            {
+              name: 'Boosts',
+              value: `${guild.premiumSubscriptionCount ?? 0} (Stufe ${guild.premiumTier})`,
+              inline: true,
+            },
             {
               name: 'Kanaele',
               value: [
@@ -194,11 +203,16 @@ const userinfo: SlashCommand = {
     .setDescription('Zeigt Informationen ueber einen Nutzer')
     .setDescriptionLocalizations({ 'en-US': 'Shows information about a user' })
     .addUserOption((option) =>
-      option.setName('user').setDescription('Zielnutzer').setDescriptionLocalizations({ 'en-US': 'Target user' }),
+      option
+        .setName('user')
+        .setDescription('Zielnutzer')
+        .setDescriptionLocalizations({ 'en-US': 'Target user' }),
     ),
   execute: async ({ interaction, services }) => {
     const user = interaction.options.getUser('user') ?? interaction.user;
-    const member = interaction.guild ? await interaction.guild.members.fetch(user.id).catch(() => null) : null;
+    const member = interaction.guild
+      ? await interaction.guild.members.fetch(user.id).catch(() => null)
+      : null;
 
     const embed = new EmbedBuilder()
       .setColor(member?.displayColor || BRAND.colors.primary)
@@ -216,7 +230,11 @@ const userinfo: SlashCommand = {
         .sort((a, b) => b.position - a.position)
         .map((role) => role.toString());
       embed.addFields(
-        { name: 'Beigetreten', value: member.joinedAt ? discordTimestamp(member.joinedAt, 'R') : '—', inline: true },
+        {
+          name: 'Beigetreten',
+          value: member.joinedAt ? discordTimestamp(member.joinedAt, 'R') : '—',
+          inline: true,
+        },
         { name: `Rollen (${roles.length})`, value: truncate(roles.join(' ') || '—', 1024) },
       );
       if (member.communicationDisabledUntil) {
@@ -277,7 +295,9 @@ const servericon: SlashCommand = {
   execute: async ({ interaction, t }) => {
     const url = interaction.guild?.iconURL({ size: 1024 });
     if (!url) {
-      await interaction.reply({ embeds: [embeds.warning(t('common.notFound', { resource: 'Server-Icon' }))] });
+      await interaction.reply({
+        embeds: [embeds.warning(t('common.notFound', { resource: 'Server-Icon' }))],
+      });
       return;
     }
     await interaction.reply({ embeds: [embeds.primary(interaction.guild!.name).setImage(url).setURL(url)] });
@@ -305,7 +325,9 @@ export const generalModule: NexusModule = {
             .slice(0, 25)
             .join('\n') ?? '—';
         await interaction.update({
-          embeds: [embeds.primary(`${CATEGORY_LABELS[category]?.emoji ?? ''} ${label}`, truncate(description, 4000))],
+          embeds: [
+            embeds.primary(`${CATEGORY_LABELS[category]?.emoji ?? ''} ${label}`, truncate(description, 4000)),
+          ],
         });
       },
     },

@@ -3,9 +3,25 @@
  * ausgeliefert werden. Regel 34/52: niemals Secrets speichern oder loggen.
  */
 const SENSITIVE_KEYS = [
-  'token', 'password', 'secret', 'apikey', 'api_key', 'authorization', 'cookie',
-  'session', 'signature', 'privatekey', 'private_key', 'clientsecret', 'client_secret',
-  'refresh_token', 'access_token', 'discord_token', 'roblox_api_key', 'hash', 'salt',
+  'token',
+  'password',
+  'secret',
+  'apikey',
+  'api_key',
+  'authorization',
+  'cookie',
+  'session',
+  'signature',
+  'privatekey',
+  'private_key',
+  'clientsecret',
+  'client_secret',
+  'refresh_token',
+  'access_token',
+  'discord_token',
+  'roblox_api_key',
+  'hash',
+  'salt',
 ];
 
 const MASK = '[redacted]';

@@ -49,7 +49,10 @@ export default async function SettingsPage({ params }: { params: Promise<{ guild
             {MODULE_LABELS.map((module) => {
               const enabled = Boolean(config[module.key]);
               return (
-                <li key={module.key} className="flex items-center justify-between gap-3 rounded-lg bg-base-850/50 px-3 py-2.5">
+                <li
+                  key={module.key}
+                  className="flex items-center justify-between gap-3 rounded-lg bg-base-850/50 px-3 py-2.5"
+                >
                   <div>
                     <p className="text-sm text-slate-200">{module.label}</p>
                     <p className="text-xs text-slate-600">{module.description}</p>
@@ -104,7 +107,9 @@ export default async function SettingsPage({ params }: { params: Promise<{ guild
             </dl>
             <p className="mt-4 rounded-lg bg-base-850 p-3 text-xs text-slate-500">
               Schreibende Aenderungen laufen ueber
-              <code className="mx-1 rounded bg-base-800 px-1.5 py-0.5 font-mono">PATCH /api/v1/guilds/{guildId}/config</code>
+              <code className="mx-1 rounded bg-base-800 px-1.5 py-0.5 font-mono">
+                PATCH /api/v1/guilds/{guildId}/config
+              </code>
               und erfordern die Berechtigung <code className="font-mono">discord.config.manage</code>.
             </p>
           </Card>

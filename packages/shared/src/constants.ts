@@ -34,6 +34,10 @@ export const HEADERS = {
 
 /** Nur diese Roblox-Domains werden fuer Avatare/Links vertraut. */
 export const ROBLOX_TRUSTED_HOSTS = [
-  'users.roblox.com', 'thumbnails.roblox.com', 'groups.roblox.com',
-  'games.roblox.com', 'apis.roblox.com', 'www.roblox.com',
+  'users.roblox.com',
+  'thumbnails.roblox.com',
+  'groups.roblox.com',
+  'games.roblox.com',
+  'apis.roblox.com',
+  'www.roblox.com',
 ] as const;

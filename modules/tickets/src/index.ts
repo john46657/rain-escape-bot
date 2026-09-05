@@ -1,10 +1,24 @@
 import {
-  ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ModalBuilder, PermissionFlagsBits,
-  SlashCommandBuilder, StringSelectMenuBuilder, TextInputBuilder, TextInputStyle,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ChannelType,
+  ModalBuilder,
+  PermissionFlagsBits,
+  SlashCommandBuilder,
+  StringSelectMenuBuilder,
+  TextInputBuilder,
+  TextInputStyle,
   type GuildTextBasedChannel,
 } from 'discord.js';
 import {
-  customId, embeds, truncate, writeAudit, type NexusModule, type Services, type SlashCommand,
+  customId,
+  embeds,
+  truncate,
+  writeAudit,
+  type NexusModule,
+  type Services,
+  type SlashCommand,
 } from '@nexus/bot-core';
 import type { TicketEntity } from '@nexus/database';
 import { PreconditionError, TICKET_CATEGORIES, discordTimestamp, type TicketCategory } from '@nexus/shared';
@@ -27,7 +41,11 @@ const CATEGORY_LABELS: Record<TicketCategory, { label: string; emoji: string }> 
 const MAX_OPEN_TICKETS = 3;
 
 async function buildTicketChannel(
-  services: Services, guildId: string, openerId: string, category: TicketCategory, subject: string | null,
+  services: Services,
+  guildId: string,
+  openerId: string,
+  category: TicketCategory,
+  subject: string | null,
 ): Promise<{ ticket: TicketEntity; channel: GuildTextBasedChannel }> {
   const guild = services.client.guilds.cache.get(guildId);
   if (!guild) throw new PreconditionError('Server nicht verfuegbar');
@@ -59,13 +77,24 @@ async function buildTicketChannel(
           PermissionFlagsBits.AttachFiles,
         ],
       },
-      { id: me.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ManageChannels] },
+      {
+        id: me.id,
+        allow: [
+          PermissionFlagsBits.ViewChannel,
+          PermissionFlagsBits.SendMessages,
+          PermissionFlagsBits.ManageChannels,
+        ],
+      },
     ],
     reason: `NEXUS Ticket fuer ${openerId}`,
   });
 
   const ticket = await services.store.tickets.create({
-    guildId, channelId: channel.id, openerId, category, subject,
+    guildId,
+    channelId: channel.id,
+    openerId,
+    category,
+    subject,
   });
   await channel.setName(`ticket-${String(ticket.number).padStart(4, '0')}`).catch(() => undefined);
 
@@ -78,14 +107,26 @@ async function buildTicketChannel(
           subject ?? 'Ein Teammitglied meldet sich in Kuerze.',
         )
         .addFields(
-          { name: 'Kategorie', value: `${CATEGORY_LABELS[category].emoji} ${CATEGORY_LABELS[category].label}`, inline: true },
+          {
+            name: 'Kategorie',
+            value: `${CATEGORY_LABELS[category].emoji} ${CATEGORY_LABELS[category].label}`,
+            inline: true,
+          },
           { name: 'Erstellt', value: discordTimestamp(ticket.createdAt, 'R'), inline: true },
         ),
     ],
     components: [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder().setCustomId(customId('ticket', 'claim', ticket.id)).setLabel('Uebernehmen').setEmoji('🙋').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId(customId('ticket', 'close', ticket.id)).setLabel('Schliessen').setEmoji('🔒').setStyle(ButtonStyle.Danger),
+        new ButtonBuilder()
+          .setCustomId(customId('ticket', 'claim', ticket.id))
+          .setLabel('Uebernehmen')
+          .setEmoji('🙋')
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId(customId('ticket', 'close', ticket.id))
+          .setLabel('Schliessen')
+          .setEmoji('🔒')
+          .setStyle(ButtonStyle.Danger),
       ),
     ],
   });
@@ -105,13 +146,19 @@ async function buildTranscript(services: Services, ticket: TicketEntity): Promis
     `Erstellt: ${ticket.createdAt.toISOString()}\n` +
     `${'='.repeat(60)}\n\n`;
   const body = messages
-    .map((message) => `[${message.createdAt.toISOString()}] ${message.authorTag}${message.isStaff ? ' (Team)' : ''}: ${message.content}`)
+    .map(
+      (message) =>
+        `[${message.createdAt.toISOString()}] ${message.authorTag}${message.isStaff ? ' (Team)' : ''}: ${message.content}`,
+    )
     .join('\n');
   return Buffer.from(header + (body || '(keine Nachrichten aufgezeichnet)'), 'utf8');
 }
 
 async function closeTicket(
-  services: Services, ticket: TicketEntity, closedById: string, reason: string,
+  services: Services,
+  ticket: TicketEntity,
+  closedById: string,
+  reason: string,
 ): Promise<void> {
   const guild = services.client.guilds.cache.get(ticket.guildId);
   const channel = guild ? await guild.channels.fetch(ticket.channelId).catch(() => null) : null;
@@ -127,7 +174,8 @@ async function closeTicket(
         authorTag: message.author.tag,
         content: message.content || '(Anhang/Embed)',
         attachments: [...message.attachments.values()].map((attachment) => ({
-          name: attachment.name, url: attachment.url,
+          name: attachment.name,
+          url: attachment.url,
         })),
         isStaff: message.member?.permissions.has(PermissionFlagsBits.ManageMessages) ?? false,
       });
@@ -135,7 +183,10 @@ async function closeTicket(
   }
 
   const updated = await services.store.tickets.update(ticket.id, {
-    status: 'CLOSED', closedById, closedAt: new Date(), closeReason: reason,
+    status: 'CLOSED',
+    closedById,
+    closedAt: new Date(),
+    closeReason: reason,
   });
 
   const transcript = await buildTranscript(services, updated);
@@ -162,13 +213,22 @@ async function closeTicket(
   }
 
   await writeAudit(services, {
-    guildId: ticket.guildId, actorId: closedById, actorType: 'discord',
-    action: 'ticket.close', targetId: ticket.id, targetType: 'ticket',
-    result: 'SUCCESS', reason, metadata: { number: ticket.number },
+    guildId: ticket.guildId,
+    actorId: closedById,
+    actorType: 'discord',
+    action: 'ticket.close',
+    targetId: ticket.id,
+    targetType: 'ticket',
+    result: 'SUCCESS',
+    reason,
+    metadata: { number: ticket.number },
   });
 
   if (channel && 'delete' in channel) {
-    setTimeout(() => void channel.delete(`Ticket geschlossen von ${closedById}`).catch(() => undefined), 5_000);
+    setTimeout(
+      () => void channel.delete(`Ticket geschlossen von ${closedById}`).catch(() => undefined),
+      5_000,
+    );
   }
   await services.publish('ticket.closed', { guildId: ticket.guildId, ticketId: ticket.id, closedById });
 }
@@ -191,7 +251,9 @@ const ticketCommand: SlashCommand = {
             .setRequired(true)
             .addChoices(...TICKET_CATEGORIES.map((value) => ({ name: CATEGORY_LABELS[value].label, value }))),
         )
-        .addStringOption((option) => option.setName('subject').setDescription('Kurzbeschreibung').setMaxLength(200)),
+        .addStringOption((option) =>
+          option.setName('subject').setDescription('Kurzbeschreibung').setMaxLength(200),
+        ),
     )
     .addSubcommand((sub) =>
       sub
@@ -205,7 +267,9 @@ const ticketCommand: SlashCommand = {
         .setDescription('Fuegt einen Nutzer zum Ticket hinzu')
         .addUserOption((option) => option.setName('user').setDescription('Nutzer').setRequired(true)),
     )
-    .addSubcommand((sub) => sub.setName('panel').setDescription('Erstellt ein Ticket-Panel im aktuellen Kanal'))
+    .addSubcommand((sub) =>
+      sub.setName('panel').setDescription('Erstellt ein Ticket-Panel im aktuellen Kanal'),
+    )
     .addSubcommand((sub) => sub.setName('list').setDescription('Zeigt offene Tickets')),
   execute: async (ctx) => {
     const { interaction, services, t } = ctx;
@@ -217,8 +281,16 @@ const ticketCommand: SlashCommand = {
         await interaction.deferReply({ ephemeral: true });
         const category = interaction.options.getString('category', true) as TicketCategory;
         const subject = interaction.options.getString('subject');
-        const { channel } = await buildTicketChannel(services, guildId, interaction.user.id, category, subject);
-        await interaction.editReply({ embeds: [embeds.success(t('tickets.created', { channel: `<#${channel.id}>` }))] });
+        const { channel } = await buildTicketChannel(
+          services,
+          guildId,
+          interaction.user.id,
+          category,
+          subject,
+        );
+        await interaction.editReply({
+          embeds: [embeds.success(t('tickets.created', { channel: `<#${channel.id}>` }))],
+        });
         return;
       }
       case 'close': {
@@ -227,8 +299,15 @@ const ticketCommand: SlashCommand = {
         const isOwner = ticket.openerId === interaction.user.id;
         if (!isOwner) await ctx.requirePermission('discord.tickets.close');
 
-        await interaction.reply({ embeds: [embeds.info('Ticket wird geschlossen — Transkript wird erstellt…')] });
-        await closeTicket(services, ticket, interaction.user.id, interaction.options.getString('reason') ?? 'Kein Grund angegeben');
+        await interaction.reply({
+          embeds: [embeds.info('Ticket wird geschlossen — Transkript wird erstellt…')],
+        });
+        await closeTicket(
+          services,
+          ticket,
+          interaction.user.id,
+          interaction.options.getString('reason') ?? 'Kein Grund angegeben',
+        );
         return;
       }
       case 'add': {
@@ -239,7 +318,9 @@ const ticketCommand: SlashCommand = {
         const channel = await interaction.guild!.channels.fetch(ticket.channelId);
         if (channel && 'permissionOverwrites' in channel) {
           await channel.permissionOverwrites.edit(user.id, {
-            ViewChannel: true, SendMessages: true, ReadMessageHistory: true,
+            ViewChannel: true,
+            SendMessages: true,
+            ReadMessageHistory: true,
           });
         }
         await interaction.reply({ embeds: [embeds.success(`<@${user.id}> wurde hinzugefuegt.`)] });
@@ -338,10 +419,16 @@ const ticketsModule: NexusModule = {
 
         await interaction.deferReply({ ephemeral: true });
         const { ticket, channel } = await buildTicketChannel(
-          services, interaction.guildId, interaction.user.id, category, subject,
+          services,
+          interaction.guildId,
+          interaction.user.id,
+          category,
+          subject,
         );
         if (details) {
-          await channel.send({ embeds: [embeds.info(truncate(details, 4000), 'Beschreibung')] }).catch(() => undefined);
+          await channel
+            .send({ embeds: [embeds.info(truncate(details, 4000), 'Beschreibung')] })
+            .catch(() => undefined);
           await services.store.tickets.addMessage({
             ticketId: ticket.id,
             messageId: interaction.id,
@@ -352,7 +439,9 @@ const ticketsModule: NexusModule = {
             isStaff: false,
           });
         }
-        await interaction.editReply({ embeds: [embeds.success(t('tickets.created', { channel: `<#${channel.id}>` }))] });
+        await interaction.editReply({
+          embeds: [embeds.success(t('tickets.created', { channel: `<#${channel.id}>` }))],
+        });
       },
     },
     {
@@ -369,15 +458,22 @@ const ticketsModule: NexusModule = {
 
         if (action === 'claim') {
           await requirePermission('discord.tickets.claim');
-          await services.store.tickets.update(ticket.id, { status: 'CLAIMED', claimedById: interaction.user.id });
-          await interaction.reply({ embeds: [embeds.success(t('tickets.claimed', { user: `<@${interaction.user.id}>` }))] });
+          await services.store.tickets.update(ticket.id, {
+            status: 'CLAIMED',
+            claimedById: interaction.user.id,
+          });
+          await interaction.reply({
+            embeds: [embeds.success(t('tickets.claimed', { user: `<@${interaction.user.id}>` }))],
+          });
           return;
         }
 
         if (action === 'close') {
           const isOwner = ticket.openerId === interaction.user.id;
           if (!isOwner) await requirePermission('discord.tickets.close');
-          await interaction.reply({ embeds: [embeds.info('Ticket wird geschlossen — Transkript wird erstellt…')] });
+          await interaction.reply({
+            embeds: [embeds.info('Ticket wird geschlossen — Transkript wird erstellt…')],
+          });
           await closeTicket(services, ticket, interaction.user.id, 'Ueber Button geschlossen');
         }
       },

@@ -24,8 +24,12 @@ export class CacheService {
     return new CacheService({ driver: new MemoryCacheDriver(), prefix });
   }
 
-  get kind(): 'redis' | 'memory' { return this.driver.kind; }
-  get raw(): CacheDriver { return this.driver; }
+  get kind(): 'redis' | 'memory' {
+    return this.driver.kind;
+  }
+  get raw(): CacheDriver {
+    return this.driver;
+  }
 
   key(...parts: Array<string | number>): string {
     return [this.prefix, ...parts].join(':');
@@ -91,11 +95,23 @@ export class CacheService {
   }
 
   // ---------------------------------------------------------- Rate Limit
-  async rateLimit(scope: string, id: string, limit: number, windowMs: number, cost = 1): Promise<TokenBucketResult> {
+  async rateLimit(
+    scope: string,
+    id: string,
+    limit: number,
+    windowMs: number,
+    cost = 1,
+  ): Promise<TokenBucketResult> {
     return this.driver.tokenBucket(this.key('ratelimit', scope, id), limit, windowMs, cost);
   }
 
-  async enforceRateLimit(scope: string, id: string, limit: number, windowMs: number, cost = 1): Promise<void> {
+  async enforceRateLimit(
+    scope: string,
+    id: string,
+    limit: number,
+    windowMs: number,
+    cost = 1,
+  ): Promise<void> {
     const result = await this.rateLimit(scope, id, limit, windowMs, cost);
     if (!result.allowed) throw new RateLimitError(result.resetAfterMs, { scope, limit });
   }
@@ -111,7 +127,9 @@ export class CacheService {
     const key = this.key('lock', name);
     const acquired = await this.driver.set(key, String(process.pid), { ttlMs, ifNotExists: true });
     if (!acquired) return null;
-    return async () => { await this.driver.del(key); };
+    return async () => {
+      await this.driver.del(key);
+    };
   }
 
   async withLock<T>(name: string, ttlMs: number, operation: () => Promise<T>): Promise<T | null> {
@@ -157,5 +175,7 @@ export class CacheService {
     }
   }
 
-  async close(): Promise<void> { await this.driver.close(); }
+  async close(): Promise<void> {
+    await this.driver.close();
+  }
 }

@@ -1,6 +1,12 @@
 /** Realtime-Kanaele fuer das Dashboard (WebSocket). */
 export const REALTIME_CHANNELS = [
-  'security', 'moderation', 'tickets', 'roblox', 'system', 'economy', 'analytics',
+  'security',
+  'moderation',
+  'tickets',
+  'roblox',
+  'system',
+  'economy',
+  'analytics',
 ] as const;
 export type RealtimeChannel = (typeof REALTIME_CHANNELS)[number];
 

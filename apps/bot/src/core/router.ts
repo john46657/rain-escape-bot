@@ -1,15 +1,30 @@
 import {
-  ActionRowBuilder, ButtonBuilder, ButtonStyle, DiscordAPIError, MessageFlags,
-  type AnySelectMenuInteraction, type AutocompleteInteraction, type BaseInteraction,
-  type ButtonInteraction, type ChatInputCommandInteraction, type ContextMenuCommandInteraction,
-  type Interaction, type InteractionReplyOptions, type MessageContextMenuCommandInteraction,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  DiscordAPIError,
+  MessageFlags,
+  type AnySelectMenuInteraction,
+  type AutocompleteInteraction,
+  type BaseInteraction,
+  type ButtonInteraction,
+  type ChatInputCommandInteraction,
+  type ContextMenuCommandInteraction,
+  type Interaction,
+  type InteractionReplyOptions,
+  type MessageContextMenuCommandInteraction,
   type ModalSubmitInteraction,
   type RepliableInteraction,
 } from 'discord.js';
 import { assertFeature } from '@nexus/config';
 import type { PermissionNode } from '@nexus/permissions';
 import {
-  ForbiddenError, RateLimitError, formatDuration, isNexusError, sortableId, toNexusError,
+  ForbiddenError,
+  RateLimitError,
+  formatDuration,
+  isNexusError,
+  sortableId,
+  toNexusError,
 } from '@nexus/shared';
 import { createTranslator, normalizeLocale, type Translator } from '../i18n/index.js';
 import { embeds } from './embeds.js';
@@ -45,9 +60,7 @@ export class InteractionRouter {
   private async buildContext(interaction: BaseInteraction): Promise<BaseContext> {
     const guildId = interaction.guildId;
     const userLocale = normalizeLocale(interaction.locale);
-    const locale = guildId
-      ? await this.services.guildContext.locale(guildId, userLocale)
-      : userLocale;
+    const locale = guildId ? await this.services.guildContext.locale(guildId, userLocale) : userLocale;
     const t = createTranslator(locale);
     const config = guildId ? await this.services.guildContext.config(guildId) : null;
 
@@ -89,12 +102,18 @@ export class InteractionRouter {
     const ctx = await this.buildContext(interaction);
 
     if (command.guildOnly !== false && !interaction.guildId) {
-      await this.respond(interaction, { embeds: [embeds.error(ctx.t('common.guildOnly'))], flags: MessageFlags.Ephemeral });
+      await this.respond(interaction, {
+        embeds: [embeds.error(ctx.t('common.guildOnly'))],
+        flags: MessageFlags.Ephemeral,
+      });
       return;
     }
 
     if (command.ownerOnly && !this.services.env.DISCORD_OWNER_IDS.split(',').includes(interaction.user.id)) {
-      await this.respond(interaction, { embeds: [embeds.error(ctx.t('common.noPermission', { node: 'owner' }))], flags: MessageFlags.Ephemeral });
+      await this.respond(interaction, {
+        embeds: [embeds.error(ctx.t('common.noPermission', { node: 'owner' }))],
+        flags: MessageFlags.Ephemeral,
+      });
       return;
     }
 
@@ -109,7 +128,11 @@ export class InteractionRouter {
     if (command.permission) await ctx.requirePermission(command.permission);
 
     if (command.cooldownMs) {
-      await this.services.cache.consumeCooldown(`cmd:${command.data.name}`, interaction.user.id, command.cooldownMs);
+      await this.services.cache.consumeCooldown(
+        `cmd:${command.data.name}`,
+        interaction.user.id,
+        command.cooldownMs,
+      );
     }
 
     const startedAt = Date.now();
@@ -144,7 +167,11 @@ export class InteractionRouter {
     await this.guardRateLimit(interaction.user.id);
     if (menu.permission) await ctx.requirePermission(menu.permission);
     if (menu.cooldownMs) {
-      await this.services.cache.consumeCooldown(`ctx:${menu.data.name}`, interaction.user.id, menu.cooldownMs);
+      await this.services.cache.consumeCooldown(
+        `ctx:${menu.data.name}`,
+        interaction.user.id,
+        menu.cooldownMs,
+      );
     }
     await menu.execute({ ...ctx, interaction: typed });
   }
@@ -168,7 +195,11 @@ export class InteractionRouter {
     await this.guardRateLimit(interaction.user.id);
     if (handler.permission) await ctx.requirePermission(handler.permission);
     if (handler.cooldownMs) {
-      await this.services.cache.consumeCooldown(`cmp:${parsed.namespace}`, interaction.user.id, handler.cooldownMs);
+      await this.services.cache.consumeCooldown(
+        `cmp:${parsed.namespace}`,
+        interaction.user.id,
+        handler.cooldownMs,
+      );
     }
 
     await handler.execute({ ...ctx, interaction, args: [parsed.action, ...parsed.args] });
@@ -177,7 +208,10 @@ export class InteractionRouter {
   // ---------------------------------------------------------------- Guards
   private async guardRateLimit(userId: string): Promise<void> {
     await this.services.cache.enforceRateLimit(
-      'interaction', userId, GLOBAL_RATE_LIMIT.limit, GLOBAL_RATE_LIMIT.windowMs,
+      'interaction',
+      userId,
+      GLOBAL_RATE_LIMIT.limit,
+      GLOBAL_RATE_LIMIT.windowMs,
     );
   }
 
@@ -193,7 +227,9 @@ export class InteractionRouter {
   }
 
   private async guardModule(
-    interaction: RepliableInteraction, ctx: BaseContext, toggle?: ModuleToggle,
+    interaction: RepliableInteraction,
+    ctx: BaseContext,
+    toggle?: ModuleToggle,
   ): Promise<boolean> {
     if (!toggle || !ctx.config || ctx.config[toggle]) return true;
     await this.respond(interaction, {
@@ -235,7 +271,9 @@ export class InteractionRouter {
 
     if (nexusError instanceof RateLimitError) {
       await this.respond(interaction, {
-        embeds: [embeds.warning(t('common.rateLimited', { duration: formatDuration(nexusError.retryAfterMs) }))],
+        embeds: [
+          embeds.warning(t('common.rateLimited', { duration: formatDuration(nexusError.retryAfterMs) })),
+        ],
         flags: MessageFlags.Ephemeral,
       });
       return;
@@ -281,12 +319,24 @@ export class InteractionRouter {
  */
 export async function requireConfirmation(
   interaction: RepliableInteraction,
-  options: { title: string; description: string; confirmLabel: string; cancelLabel: string; timeoutMs?: number },
+  options: {
+    title: string;
+    description: string;
+    confirmLabel: string;
+    cancelLabel: string;
+    timeoutMs?: number;
+  },
 ): Promise<boolean> {
   const token = sortableId('cf');
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder().setCustomId(`nexus:confirm:yes:${token}`).setLabel(options.confirmLabel).setStyle(ButtonStyle.Danger),
-    new ButtonBuilder().setCustomId(`nexus:confirm:no:${token}`).setLabel(options.cancelLabel).setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(`nexus:confirm:yes:${token}`)
+      .setLabel(options.confirmLabel)
+      .setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
+      .setCustomId(`nexus:confirm:no:${token}`)
+      .setLabel(options.cancelLabel)
+      .setStyle(ButtonStyle.Secondary),
   );
 
   const payload = {
@@ -304,8 +354,7 @@ export async function requireConfirmation(
   try {
     const response = await message.awaitMessageComponent({
       time: options.timeoutMs ?? 30_000,
-      filter: (component) =>
-        component.user.id === interaction.user.id && component.customId.endsWith(token),
+      filter: (component) => component.user.id === interaction.user.id && component.customId.endsWith(token),
     });
     const confirmed = response.customId.includes(':yes:');
     await response.update({
@@ -314,7 +363,9 @@ export async function requireConfirmation(
     });
     return confirmed;
   } catch {
-    await interaction.editReply({ embeds: [embeds.info('Zeitueberschreitung — abgebrochen.')], components: [] }).catch(() => undefined);
+    await interaction
+      .editReply({ embeds: [embeds.info('Zeitueberschreitung — abgebrochen.')], components: [] })
+      .catch(() => undefined);
     return false;
   }
 }

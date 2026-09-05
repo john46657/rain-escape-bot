@@ -1,9 +1,19 @@
 import {
-  AuditLogEvent, type ClientEvents, Events, PermissionFlagsBits, SlashCommandBuilder,
+  AuditLogEvent,
+  type ClientEvents,
+  Events,
+  PermissionFlagsBits,
+  SlashCommandBuilder,
 } from 'discord.js';
 import {
-  embeds, requireConfirmation, truncate, writeAudit, type AnyEventHandler, type NexusModule,
-  type Services, type SlashCommand,
+  embeds,
+  requireConfirmation,
+  truncate,
+  writeAudit,
+  type AnyEventHandler,
+  type NexusModule,
+  type Services,
+  type SlashCommand,
 } from '@nexus/bot-core';
 import { DAY, discordTimestamp, formatDuration } from '@nexus/shared';
 import { AntiNukeEngine, type NukeAction } from './antinuke.js';
@@ -58,13 +68,17 @@ const security: SlashCommand = {
           sub
             .setName('add')
             .setDescription('Fuegt Nutzer oder Rolle hinzu')
-            .addMentionableOption((option) => option.setName('target').setDescription('Nutzer oder Rolle').setRequired(true)),
+            .addMentionableOption((option) =>
+              option.setName('target').setDescription('Nutzer oder Rolle').setRequired(true),
+            ),
         )
         .addSubcommand((sub) =>
           sub
             .setName('remove')
             .setDescription('Entfernt Nutzer oder Rolle')
-            .addMentionableOption((option) => option.setName('target').setDescription('Nutzer oder Rolle').setRequired(true)),
+            .addMentionableOption((option) =>
+              option.setName('target').setDescription('Nutzer oder Rolle').setRequired(true),
+            ),
         )
         .addSubcommand((sub) => sub.setName('list').setDescription('Zeigt die Whitelist')),
     )
@@ -97,14 +111,22 @@ const security: SlashCommand = {
 
       await services.guildContext.updateConfig(guild.id, { antiNukeWhitelist: next });
       await writeAudit(services, {
-        guildId: guild.id, actorId: interaction.user.id, actorType: 'discord',
-        action: `security.whitelist.${sub}`, targetId, targetType: 'mentionable',
-        result: 'SUCCESS', reason: null, metadata: { size: next.length },
+        guildId: guild.id,
+        actorId: interaction.user.id,
+        actorType: 'discord',
+        action: `security.whitelist.${sub}`,
+        targetId,
+        targetType: 'mentionable',
+        result: 'SUCCESS',
+        reason: null,
+        metadata: { size: next.length },
       });
       await interaction.reply({
         embeds: [
           embeds.success(
-            t(sub === 'add' ? 'security.whitelistAdded' : 'security.whitelistRemoved', { target: `<@${targetId}>` }),
+            t(sub === 'add' ? 'security.whitelistAdded' : 'security.whitelistRemoved', {
+              target: `<@${targetId}>`,
+            }),
           ),
         ],
         ephemeral: true,
@@ -163,7 +185,11 @@ const security: SlashCommand = {
                 )
                 .join('\n\n');
         await interaction.reply({
-          embeds: [embeds.security('Sicherheitsvorfaelle', description).setFooter({ text: `${result.total} gesamt` })],
+          embeds: [
+            embeds
+              .security('Sicherheitsvorfaelle', description)
+              .setFooter({ text: `${result.total} gesamt` }),
+          ],
           ephemeral: true,
         });
         return;
@@ -179,47 +205,65 @@ const security: SlashCommand = {
           });
           return;
         }
-        await services.store.security.updateIncident(id, { status: 'RESOLVED', resolvedBy: interaction.user.id });
-        await writeAudit(services, {
-          guildId: guild.id, actorId: interaction.user.id, actorType: 'discord',
-          action: 'security.incident.resolve', targetId: id, targetType: 'incident',
-          result: 'SUCCESS', reason: null, metadata: {},
+        await services.store.security.updateIncident(id, {
+          status: 'RESOLVED',
+          resolvedBy: interaction.user.id,
         });
-        await interaction.reply({ embeds: [embeds.success(`Vorfall \`${id.slice(0, 8)}\` geschlossen.`)], ephemeral: true });
+        await writeAudit(services, {
+          guildId: guild.id,
+          actorId: interaction.user.id,
+          actorType: 'discord',
+          action: 'security.incident.resolve',
+          targetId: id,
+          targetType: 'incident',
+          result: 'SUCCESS',
+          reason: null,
+          metadata: {},
+        });
+        await interaction.reply({
+          embeds: [embeds.success(`Vorfall \`${id.slice(0, 8)}\` geschlossen.`)],
+          ephemeral: true,
+        });
         return;
       }
       default: {
         await ctx.requirePermission('discord.security.view');
         const config = await services.guildContext.config(guild.id);
-        const open = await services.store.security.listIncidents({ guildId: guild.id, status: 'OPEN', pageSize: 1 });
+        const open = await services.store.security.listIncidents({
+          guildId: guild.id,
+          status: 'OPEN',
+          pageSize: 1,
+        });
         const rules = Object.entries(config.automodConfig).filter(([, rule]) => rule?.enabled);
 
         await interaction.reply({
           embeds: [
-            embeds
-              .security('Sicherheitsstatus', `Server: **${guild.name}**`)
-              .addFields(
-                { name: 'AutoMod', value: config.automodEnabled ? `🟢 aktiv (${rules.length} Regeln)` : '🔴 aus', inline: true },
-                { name: 'Anti-Nuke', value: config.antiNukeEnabled ? '🟢 aktiv' : '🔴 aus', inline: true },
-                { name: 'Join-Schutz', value: config.raidModeEnabled ? '🟢 aktiv' : '⚪ aus', inline: true },
-                {
-                  name: 'Notfallmodus',
-                  value: config.lockdownActive
-                    ? `🔒 aktiv seit ${config.lockdownAt ? discordTimestamp(config.lockdownAt, 'R') : '—'}`
-                    : '🔓 inaktiv',
-                  inline: true,
-                },
-                { name: 'Offene Vorfaelle', value: String(open.total), inline: true },
-                {
-                  name: 'Mindest-Kontoalter',
-                  value: config.minAccountAgeDays > 0 ? `${config.minAccountAgeDays} Tage` : 'keins',
-                  inline: true,
-                },
-                {
-                  name: 'Aktive AutoMod-Regeln',
-                  value: rules.map(([name, rule]) => `\`${name}\` → ${rule?.action}`).join('\n') || 'keine',
-                },
-              ),
+            embeds.security('Sicherheitsstatus', `Server: **${guild.name}**`).addFields(
+              {
+                name: 'AutoMod',
+                value: config.automodEnabled ? `🟢 aktiv (${rules.length} Regeln)` : '🔴 aus',
+                inline: true,
+              },
+              { name: 'Anti-Nuke', value: config.antiNukeEnabled ? '🟢 aktiv' : '🔴 aus', inline: true },
+              { name: 'Join-Schutz', value: config.raidModeEnabled ? '🟢 aktiv' : '⚪ aus', inline: true },
+              {
+                name: 'Notfallmodus',
+                value: config.lockdownActive
+                  ? `🔒 aktiv seit ${config.lockdownAt ? discordTimestamp(config.lockdownAt, 'R') : '—'}`
+                  : '🔓 inaktiv',
+                inline: true,
+              },
+              { name: 'Offene Vorfaelle', value: String(open.total), inline: true },
+              {
+                name: 'Mindest-Kontoalter',
+                value: config.minAccountAgeDays > 0 ? `${config.minAccountAgeDays} Tage` : 'keins',
+                inline: true,
+              },
+              {
+                name: 'Aktive AutoMod-Regeln',
+                value: rules.map(([name, rule]) => `\`${name}\` → ${rule?.action}`).join('\n') || 'keine',
+              },
+            ),
           ],
           ephemeral: true,
         });
@@ -267,7 +311,10 @@ const joinGuard: AnyEventHandler = {
     const config = await services.guildContext.config(member.guild.id);
 
     const joinsPerMinute = await services.cache.slidingWindow(
-      'raid:joins', member.guild.id, member.id, 60_000,
+      'raid:joins',
+      member.guild.id,
+      member.id,
+      60_000,
     );
     const raidRule = config.automodConfig.RAID_DETECTION;
 
@@ -305,9 +352,13 @@ const joinGuard: AnyEventHandler = {
             ],
           })
           .catch(() => undefined);
-        await member.kick(`NEXUS Join-Schutz: Konto juenger als ${config.minAccountAgeDays} Tage`).catch(() => undefined);
+        await member
+          .kick(`NEXUS Join-Schutz: Konto juenger als ${config.minAccountAgeDays} Tage`)
+          .catch(() => undefined);
         services.log.security('Beitritt abgelehnt (Kontoalter)', {
-          guildId: member.guild.id, userId: member.id, ageDays: Math.round(ageDays),
+          guildId: member.guild.id,
+          userId: member.id,
+          ageDays: Math.round(ageDays),
         });
       }
     }
@@ -370,7 +421,11 @@ const securityModule: NexusModule = {
       singleton: true,
       execute: async (services) => {
         // Offene kritische Vorfaelle aelter als eine Stunde erneut melden.
-        const open = await services.store.security.listIncidents({ status: 'OPEN', severity: 'CRITICAL', pageSize: 20 });
+        const open = await services.store.security.listIncidents({
+          status: 'OPEN',
+          severity: 'CRITICAL',
+          pageSize: 20,
+        });
         for (const incident of open.items) {
           if (!incident.guildId || Date.now() - incident.createdAt.getTime() < 60 * 60_000) continue;
           await services.store.notifications.create({

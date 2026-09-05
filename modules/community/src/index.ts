@@ -1,6 +1,4 @@
-import {
-  ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, SlashCommandBuilder,
-} from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, SlashCommandBuilder } from 'discord.js';
 import { customId, embeds, truncate, type NexusModule, type SlashCommand } from '@nexus/bot-core';
 import { discordTimestamp } from '@nexus/shared';
 
@@ -19,7 +17,9 @@ const suggest: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('suggest')
     .setDescription('Reicht einen Vorschlag ein')
-    .addStringOption((option) => option.setName('text').setDescription('Dein Vorschlag').setRequired(true).setMaxLength(1000)),
+    .addStringOption((option) =>
+      option.setName('text').setDescription('Dein Vorschlag').setRequired(true).setMaxLength(1000),
+    ),
   execute: async ({ interaction, services, config, t }) => {
     const text = interaction.options.getString('text', true);
     const channelId = config?.suggestionChannelId;
@@ -33,7 +33,10 @@ const suggest: SlashCommand = {
 
     const channel = await interaction.guild?.channels.fetch(channelId).catch(() => null);
     if (!channel?.isTextBased()) {
-      await interaction.reply({ embeds: [embeds.warning(t('common.notFound', { resource: 'Vorschlagskanal' }))], ephemeral: true });
+      await interaction.reply({
+        embeds: [embeds.warning(t('common.notFound', { resource: 'Vorschlagskanal' }))],
+        ephemeral: true,
+      });
       return;
     }
 
@@ -46,16 +49,27 @@ const suggest: SlashCommand = {
       ],
       components: [
         new ActionRowBuilder<ButtonBuilder>().addComponents(
-          new ButtonBuilder().setCustomId(customId('suggest', 'up')).setEmoji('👍').setStyle(ButtonStyle.Success),
-          new ButtonBuilder().setCustomId(customId('suggest', 'down')).setEmoji('👎').setStyle(ButtonStyle.Danger),
+          new ButtonBuilder()
+            .setCustomId(customId('suggest', 'up'))
+            .setEmoji('👍')
+            .setStyle(ButtonStyle.Success),
+          new ButtonBuilder()
+            .setCustomId(customId('suggest', 'down'))
+            .setEmoji('👎')
+            .setStyle(ButtonStyle.Danger),
         ),
       ],
     });
 
     await services.publish('community.suggestion', {
-      guildId: interaction.guildId, userId: interaction.user.id, messageId: message.id,
+      guildId: interaction.guildId,
+      userId: interaction.user.id,
+      messageId: message.id,
     });
-    await interaction.reply({ embeds: [embeds.success(`Vorschlag eingereicht: ${message.url}`)], ephemeral: true });
+    await interaction.reply({
+      embeds: [embeds.success(`Vorschlag eingereicht: ${message.url}`)],
+      ephemeral: true,
+    });
   },
 };
 
@@ -66,8 +80,12 @@ const poll: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('poll')
     .setDescription('Erstellt eine Umfrage')
-    .addStringOption((option) => option.setName('question').setDescription('Frage').setRequired(true).setMaxLength(300))
-    .addStringOption((option) => option.setName('options').setDescription('Antworten, durch | getrennt (max. 5)').setRequired(true)),
+    .addStringOption((option) =>
+      option.setName('question').setDescription('Frage').setRequired(true).setMaxLength(300),
+    )
+    .addStringOption((option) =>
+      option.setName('options').setDescription('Antworten, durch | getrennt (max. 5)').setRequired(true),
+    ),
   execute: async ({ interaction }) => {
     const question = interaction.options.getString('question', true);
     const options = interaction.options
@@ -80,7 +98,10 @@ const poll: SlashCommand = {
 
     const message = await interaction.reply({
       embeds: [
-        embeds.primary(`📊 ${question}`, options.map((option, index) => `${emojis[index]} ${option}`).join('\n')),
+        embeds.primary(
+          `📊 ${question}`,
+          options.map((option, index) => `${emojis[index]} ${option}`).join('\n'),
+        ),
       ],
       fetchReply: true,
     });
@@ -104,7 +125,10 @@ const afk: SlashCommand = {
       { reason, since: Date.now() },
       24 * 60 * 60 * 1000,
     );
-    await interaction.reply({ embeds: [embeds.success(`Du bist jetzt als AFK markiert: ${reason}`)], ephemeral: true });
+    await interaction.reply({
+      embeds: [embeds.success(`Du bist jetzt als AFK markiert: ${reason}`)],
+      ephemeral: true,
+    });
   },
 };
 
@@ -122,14 +146,25 @@ const communityModule: NexusModule = {
         const direction = args[0] === 'up' ? 'up' : 'down';
         // Eine Stimme je Nutzer und Vorschlag.
         const first = await services.cache.markOnce(
-          `suggest:${interaction.message.id}`, interaction.user.id, 30 * 24 * 60 * 60 * 1000,
+          `suggest:${interaction.message.id}`,
+          interaction.user.id,
+          30 * 24 * 60 * 60 * 1000,
         );
         if (!first) {
-          await interaction.reply({ embeds: [embeds.warning('Du hast bereits abgestimmt.')], ephemeral: true });
+          await interaction.reply({
+            embeds: [embeds.warning('Du hast bereits abgestimmt.')],
+            ephemeral: true,
+          });
           return;
         }
-        const votes = await services.cache.increment(`suggest:votes:${interaction.message.id}:${direction}`, 1);
-        await interaction.reply({ embeds: [embeds.success(`Stimme gezaehlt (${direction === 'up' ? '👍' : '👎'} ${votes}).`)], ephemeral: true });
+        const votes = await services.cache.increment(
+          `suggest:votes:${interaction.message.id}:${direction}`,
+          1,
+        );
+        await interaction.reply({
+          embeds: [embeds.success(`Stimme gezaehlt (${direction === 'up' ? '👍' : '👎'} ${votes}).`)],
+          ephemeral: true,
+        });
       },
     },
   ],
@@ -161,7 +196,11 @@ const communityModule: NexusModule = {
                   `Willkommen auf ${member.guild.name}`,
                 )
                 .setThumbnail(member.user.displayAvatarURL({ size: 256 }))
-                .addFields({ name: 'Konto erstellt', value: discordTimestamp(member.user.createdAt, 'R'), inline: true }),
+                .addFields({
+                  name: 'Konto erstellt',
+                  value: discordTimestamp(member.user.createdAt, 'R'),
+                  inline: true,
+                }),
             ],
           })
           .catch(() => undefined);
@@ -195,7 +234,9 @@ const communityModule: NexusModule = {
       event: Events.MessageReactionAdd,
       execute: async (services, reaction) => {
         if (reaction.emoji.name !== '⭐') return;
-        const message = reaction.message.partial ? await reaction.message.fetch().catch(() => null) : reaction.message;
+        const message = reaction.message.partial
+          ? await reaction.message.fetch().catch(() => null)
+          : reaction.message;
         if (!message?.inGuild()) return;
 
         const config = await services.guildContext.config(message.guildId);
@@ -229,9 +270,11 @@ const communityModule: NexusModule = {
         const entry = await services.cache.getJson<{ reason: string; since: number }>(key);
         if (!entry) return;
         await services.cache.delete(key);
-        const reply = await message.reply({
-          embeds: [embeds.info(`Willkommen zurueck — deine AFK-Markierung wurde entfernt.`)],
-        }).catch(() => null);
+        const reply = await message
+          .reply({
+            embeds: [embeds.info(`Willkommen zurueck — deine AFK-Markierung wurde entfernt.`)],
+          })
+          .catch(() => null);
         setTimeout(() => void reply?.delete().catch(() => undefined), 10_000);
       },
     },

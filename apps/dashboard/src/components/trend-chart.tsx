@@ -8,7 +8,15 @@ export interface TrendPoint {
 }
 
 /** Zeitreihe fuer Analytics-Kennzahlen. */
-export function TrendChart({ series, metric, label }: { series: TrendPoint[]; metric: string; label: string }) {
+export function TrendChart({
+  series,
+  metric,
+  label,
+}: {
+  series: TrendPoint[];
+  metric: string;
+  label: string;
+}) {
   const data = series.map((point) => ({
     date: new Date(point.bucket).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
     value: point.metrics[metric] ?? 0,
@@ -28,14 +36,27 @@ export function TrendChart({ series, metric, label }: { series: TrendPoint[]; me
           </linearGradient>
         </defs>
         <CartesianGrid stroke="#1f2433" strokeDasharray="3 3" vertical={false} />
-        <XAxis dataKey="date" stroke="#4b5568" fontSize={11} tickLine={false} axisLine={false} minTickGap={24} />
+        <XAxis
+          dataKey="date"
+          stroke="#4b5568"
+          fontSize={11}
+          tickLine={false}
+          axisLine={false}
+          minTickGap={24}
+        />
         <YAxis stroke="#4b5568" fontSize={11} tickLine={false} axisLine={false} width={48} />
         <Tooltip
           contentStyle={{ background: '#10131c', border: '1px solid #1f2433', borderRadius: 8, fontSize: 12 }}
           labelStyle={{ color: '#94a3b8' }}
           formatter={(value: number) => [value.toLocaleString('de-DE'), label]}
         />
-        <Area type="monotone" dataKey="value" stroke="#7983f5" strokeWidth={2} fill={`url(#gradient-${metric})`} />
+        <Area
+          type="monotone"
+          dataKey="value"
+          stroke="#7983f5"
+          strokeWidth={2}
+          fill={`url(#gradient-${metric})`}
+        />
       </AreaChart>
     </ResponsiveContainer>
   );

@@ -40,20 +40,20 @@ Es gibt also keinen Build-Schritt pro Paket und keine veralteten `dist`-Ordner.
 
 `packages/database` besteht aus vier Teilen:
 
-| Datei | Inhalt |
-| --- | --- |
-| `prisma/schema.prisma` | Das physische Schema (~40 Modelle) |
-| `src/entities.ts` | Handgeschriebene Domaenentypen — JSON-Spalten sind hier bereits typisiert |
-| `src/ports.ts` | Repository-Schnittstellen, gebuendelt im `DataStore` |
-| `src/prisma/`, `src/memory/` | Zwei Adapter mit identischer Semantik |
+| Datei                        | Inhalt                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------- |
+| `prisma/schema.prisma`       | Das physische Schema (~40 Modelle)                                        |
+| `src/entities.ts`            | Handgeschriebene Domaenentypen — JSON-Spalten sind hier bereits typisiert |
+| `src/ports.ts`               | Repository-Schnittstellen, gebuendelt im `DataStore`                      |
+| `src/prisma/`, `src/memory/` | Zwei Adapter mit identischer Semantik                                     |
 
 **Begruendung**
 
-1. *Entkopplung.* Kein Modul importiert generierte Prisma-Typen. Ein Wechsel des
+1. _Entkopplung._ Kein Modul importiert generierte Prisma-Typen. Ein Wechsel des
    ORM oder eine Denormalisierung bleibt lokal.
-2. *Testbarkeit.* Der In-Memory-Adapter macht die Testsuite schnell und
+2. _Testbarkeit._ Der In-Memory-Adapter macht die Testsuite schnell und
    deterministisch — ohne Docker, ohne Migrationen.
-3. *Lauffaehigkeit ohne Infrastruktur.* Derselbe Adapter treibt den `DEV_MODE`
+3. _Lauffaehigkeit ohne Infrastruktur._ Derselbe Adapter treibt den `DEV_MODE`
    und damit die Demo des Dashboards.
 
 Damit die Tests aussagekraeftig bleiben, bildet der In-Memory-Adapter die
@@ -75,14 +75,14 @@ dass zwei Schemadateien gepflegt werden muessen.
 
 ### Nebenlaeufigkeit
 
-| Invariante | Umsetzung |
-| --- | --- |
-| Fallnummern lueckenlos und eindeutig | Transaktion + Unique-Index `(guildId, sequence)` + Wiederholung bei Kollision |
-| Keine Doppelbuchung | `Transaction.idempotencyKey` ist eindeutig; Pruefung innerhalb der Transaktion |
-| Keine verlorenen Updates | Bedingtes `updateMany` mit Guard auf Saldo und `version` (optimistisches Locking) |
-| Belohnungen genau einmal | `RewardGrant.idempotencyKey` eindeutig; `grant()` meldet `created` |
-| Roblox-Ereignisse einmalig | `RobloxEvent.eventId` eindeutig; Duplikate werden als solche gemeldet |
-| Kommandos einmalig ausgeliefert | Transaktion: `findMany` → `updateMany(status: PENDING)` → erneut lesen |
+| Invariante                           | Umsetzung                                                                         |
+| ------------------------------------ | --------------------------------------------------------------------------------- |
+| Fallnummern lueckenlos und eindeutig | Transaktion + Unique-Index `(guildId, sequence)` + Wiederholung bei Kollision     |
+| Keine Doppelbuchung                  | `Transaction.idempotencyKey` ist eindeutig; Pruefung innerhalb der Transaktion    |
+| Keine verlorenen Updates             | Bedingtes `updateMany` mit Guard auf Saldo und `version` (optimistisches Locking) |
+| Belohnungen genau einmal             | `RewardGrant.idempotencyKey` eindeutig; `grant()` meldet `created`                |
+| Roblox-Ereignisse einmalig           | `RobloxEvent.eventId` eindeutig; Duplikate werden als solche gemeldet             |
+| Kommandos einmalig ausgeliefert      | Transaktion: `findMany` → `updateMany(status: PENDING)` → erneut lesen            |
 
 ## Bot-Kern
 
@@ -138,7 +138,7 @@ der Browser spricht ausschliesslich mit seiner eigenen Herkunft.
 ## Fehlerbehandlung
 
 Alle Fehler stammen von `NexusError` mit Code, HTTP-Status und der Angabe, ob
-sie *erwartet* sind. Erwartete Fehler (fehlende Rechte, zu wenig Guthaben,
+sie _erwartet_ sind. Erwartete Fehler (fehlende Rechte, zu wenig Guthaben,
 Rate-Limit) erzeugen eine hilfreiche Nutzermeldung ohne Stacktrace; unerwartete
 Fehler werden mit Referenz-ID geloggt. Discord-API-Fehler werden in verstaendliche
 Meldungen uebersetzt (`wrapDiscordError`).

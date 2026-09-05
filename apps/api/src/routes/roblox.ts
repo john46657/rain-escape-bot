@@ -3,7 +3,12 @@ import { z } from 'zod';
 import { ReplayGuard, verifySignature } from '@nexus/security';
 import { ROBLOX_ENDPOINTS, ROBLOX_ERROR_CODES, NEXUS_PROTOCOL_VERSION } from '@nexus/roblox-sdk';
 import {
-  ForbiddenError, MINUTE, PreconditionError, UnauthorizedError, ValidationError, uuid,
+  ForbiddenError,
+  MINUTE,
+  PreconditionError,
+  UnauthorizedError,
+  ValidationError,
+  uuid,
 } from '@nexus/shared';
 import { VerificationService } from '@nexus/module-roblox';
 
@@ -75,7 +80,9 @@ export async function registerRobloxRoutes(app: FastifyInstance): Promise<void> 
    * Authentifiziert einen Game-Server.
    * Gibt das Spiel zurueck oder wirft einen sprechenden Fehler.
    */
-  async function authenticate(request: FastifyRequest): Promise<{ gameId: string; universeId: string; guildId: string }> {
+  async function authenticate(
+    request: FastifyRequest,
+  ): Promise<{ gameId: string; universeId: string; guildId: string }> {
     const apiKeyHeader = request.headers['x-nexus-key'];
     const signature = request.headers['x-nexus-signature'];
     const timestamp = request.headers['x-nexus-timestamp'];
@@ -83,19 +90,24 @@ export async function registerRobloxRoutes(app: FastifyInstance): Promise<void> 
     const universeId = request.headers['x-nexus-game'];
 
     if (!apiKeyHeader || !signature || !timestamp || !nonce || !universeId) {
-      throw new UnauthorizedError('Signatur-Header unvollstaendig', { code: ROBLOX_ERROR_CODES.SIGNATURE_INVALID });
+      throw new UnauthorizedError('Signatur-Header unvollstaendig', {
+        code: ROBLOX_ERROR_CODES.SIGNATURE_INVALID,
+      });
     }
 
     const game = await store.roblox.getGameByUniverse(String(universeId));
     if (!game || !game.active) {
-      throw new ForbiddenError('Unbekanntes oder deaktiviertes Universum', { code: ROBLOX_ERROR_CODES.UNKNOWN_GAME });
+      throw new ForbiddenError('Unbekanntes oder deaktiviertes Universum', {
+        code: ROBLOX_ERROR_CODES.UNKNOWN_GAME,
+      });
     }
 
     // Rate Limit je Spiel — ein kompromittierter Server darf nicht alles lahmlegen.
     const limit = await cache.rateLimit('roblox-game', game.id, env.ROBLOX_RATE_LIMIT_PER_MINUTE, 60_000);
     if (!limit.allowed) {
       throw new ForbiddenError('Rate Limit erreicht', {
-        code: ROBLOX_ERROR_CODES.RATE_LIMITED, retryAfterMs: limit.resetAfterMs,
+        code: ROBLOX_ERROR_CODES.RATE_LIMITED,
+        retryAfterMs: limit.resetAfterMs,
       });
     }
 
@@ -115,7 +127,9 @@ export async function registerRobloxRoutes(app: FastifyInstance): Promise<void> 
 
     if (!result.valid) {
       log.security('Roblox-Anfrage abgelehnt', {
-        universeId: String(universeId), reason: result.reason, ip: request.ip,
+        universeId: String(universeId),
+        reason: result.reason,
+        ip: request.ip,
       });
       const codes: Record<string, string> = {
         MISMATCH: ROBLOX_ERROR_CODES.SIGNATURE_INVALID,
@@ -154,7 +168,8 @@ export async function registerRobloxRoutes(app: FastifyInstance): Promise<void> 
   app.post(ROBLOX_ENDPOINTS.heartbeat, async (request) => {
     const game = await authenticate(request);
     const parsed = heartbeatSchema.safeParse(request.body);
-    if (!parsed.success) throw new ValidationError('Ungueltige Heartbeat-Daten', parsed.error.flatten().fieldErrors);
+    if (!parsed.success)
+      throw new ValidationError('Ungueltige Heartbeat-Daten', parsed.error.flatten().fieldErrors);
 
     const data = parsed.data;
     const server = await store.roblox.recordHeartbeat({
@@ -170,12 +185,17 @@ export async function registerRobloxRoutes(app: FastifyInstance): Promise<void> 
       lastHeartbeatAt: new Date(),
       startedAt: data.uptimeSeconds ? new Date(Date.now() - data.uptimeSeconds * 1000) : undefined,
       players: data.players.map((player) => ({
-        userId: player.userId, username: player.username, joinedAt: player.joinedAt,
+        userId: player.userId,
+        username: player.username,
+        joinedAt: player.joinedAt,
       })),
     });
 
     await app.nexus.cache.publish('roblox.heartbeat', {
-      guildId: game.guildId, gameId: game.gameId, jobId: data.jobId, playerCount: data.playerCount,
+      guildId: game.guildId,
+      gameId: game.gameId,
+      jobId: data.jobId,
+      playerCount: data.playerCount,
     });
 
     return { ok: true, serverId: server.id, serverTime: Math.floor(Date.now() / 1000) };
@@ -185,7 +205,8 @@ export async function registerRobloxRoutes(app: FastifyInstance): Promise<void> 
   app.post(ROBLOX_ENDPOINTS.events, async (request) => {
     const game = await authenticate(request);
     const parsed = eventSchema.safeParse(request.body);
-    if (!parsed.success) throw new ValidationError('Ungueltige Event-Daten', parsed.error.flatten().fieldErrors);
+    if (!parsed.success)
+      throw new ValidationError('Ungueltige Event-Daten', parsed.error.flatten().fieldErrors);
 
     const accepted: string[] = [];
     const duplicates: string[] = [];
@@ -224,8 +245,11 @@ export async function registerRobloxRoutes(app: FastifyInstance): Promise<void> 
 
       await store.roblox.markEventProcessed(event.id);
       await cache.publish('roblox.event', {
-        guildId: game.guildId, gameId: game.gameId, type: incoming.type,
-        robloxUserId: incoming.robloxUserId ?? null, payload: incoming.payload,
+        guildId: game.guildId,
+        gameId: game.gameId,
+        type: incoming.type,
+        robloxUserId: incoming.robloxUserId ?? null,
+        payload: incoming.payload,
       });
     }
 
@@ -236,13 +260,20 @@ export async function registerRobloxRoutes(app: FastifyInstance): Promise<void> 
   app.post(ROBLOX_ENDPOINTS.verify, async (request) => {
     const game = await authenticate(request);
     const parsed = verifySchema.safeParse(request.body);
-    if (!parsed.success) throw new ValidationError('Ungueltige Verifizierungsdaten', parsed.error.flatten().fieldErrors);
+    if (!parsed.success)
+      throw new ValidationError('Ungueltige Verifizierungsdaten', parsed.error.flatten().fieldErrors);
 
     // Zusaetzliches, strengeres Limit: Codes duerfen nicht durchprobiert werden.
-    const attempt = await cache.rateLimit('roblox-verify', `${game.gameId}:${parsed.data.robloxUserId}`, 5, 5 * MINUTE);
+    const attempt = await cache.rateLimit(
+      'roblox-verify',
+      `${game.gameId}:${parsed.data.robloxUserId}`,
+      5,
+      5 * MINUTE,
+    );
     if (!attempt.allowed) {
       throw new ForbiddenError('Zu viele Verifizierungsversuche', {
-        code: ROBLOX_ERROR_CODES.RATE_LIMITED, retryAfterMs: attempt.resetAfterMs,
+        code: ROBLOX_ERROR_CODES.RATE_LIMITED,
+        retryAfterMs: attempt.resetAfterMs,
       });
     }
 
@@ -260,7 +291,10 @@ export async function registerRobloxRoutes(app: FastifyInstance): Promise<void> 
 
     try {
       const result = await service.redeem(
-        parsed.data.code, parsed.data.robloxUserId, parsed.data.username, parsed.data.displayName,
+        parsed.data.code,
+        parsed.data.robloxUserId,
+        parsed.data.username,
+        parsed.data.displayName,
       );
       return {
         ok: true,
@@ -298,7 +332,8 @@ export async function registerRobloxRoutes(app: FastifyInstance): Promise<void> 
   app.post(ROBLOX_ENDPOINTS.acknowledge, async (request) => {
     await authenticate(request);
     const parsed = ackSchema.safeParse(request.body);
-    if (!parsed.success) throw new ValidationError('Ungueltige Bestaetigung', parsed.error.flatten().fieldErrors);
+    if (!parsed.success)
+      throw new ValidationError('Ungueltige Bestaetigung', parsed.error.flatten().fieldErrors);
 
     await store.roblox.acknowledgeCommand(parsed.data.commandId, {
       ok: parsed.data.ok,
@@ -322,7 +357,9 @@ export async function registerRobloxRoutes(app: FastifyInstance): Promise<void> 
     if (!account) return { ok: false, error: 'not_linked', message: 'Kein verknuepftes Discord-Konto' };
 
     // Der Idempotenzschluessel verhindert doppelte Gutschriften bei Retries.
-    const idempotencyKey = parsed.data.idempotencyKey ?? `reward:${game.gameId}:${parsed.data.robloxUserId}:${parsed.data.rewardKey}`;
+    const idempotencyKey =
+      parsed.data.idempotencyKey ??
+      `reward:${game.gameId}:${parsed.data.robloxUserId}:${parsed.data.rewardKey}`;
     const { grant, created } = await store.rewards.grant({
       userId: account.discordId,
       guildId: game.guildId,

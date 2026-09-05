@@ -129,7 +129,9 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
 
   app.get('/api/v1/notifications', async (request) => {
     const auth = requireAuth(request);
-    const query = z.object({ guildId: z.string().optional(), unreadOnly: z.coerce.boolean().default(false) }).parse(request.query);
+    const query = z
+      .object({ guildId: z.string().optional(), unreadOnly: z.coerce.boolean().default(false) })
+      .parse(request.query);
     const items = await store.notifications.list({
       guildId: query.guildId,
       userId: auth.kind === 'session' ? undefined : auth.userId,

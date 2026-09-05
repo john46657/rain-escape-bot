@@ -33,8 +33,12 @@ const music: SlashCommand = {
     .setName('music')
     .setDescription('Musikwiedergabe (erfordert Lavalink)')
     .addSubcommand((sub) =>
-      sub.setName('play').setDescription('Spielt einen Titel ab')
-        .addStringOption((option) => option.setName('query').setDescription('Suchbegriff oder URL').setRequired(true)),
+      sub
+        .setName('play')
+        .setDescription('Spielt einen Titel ab')
+        .addStringOption((option) =>
+          option.setName('query').setDescription('Suchbegriff oder URL').setRequired(true),
+        ),
     )
     .addSubcommand((sub) => sub.setName('skip').setDescription('Ueberspringt den aktuellen Titel'))
     .addSubcommand((sub) => sub.setName('stop').setDescription('Beendet die Wiedergabe'))
@@ -43,7 +47,10 @@ const music: SlashCommand = {
   execute: async ({ interaction, services }) => {
     const host = services.env.LAVALINK_HOST;
     if (!host) {
-      await interaction.reply({ embeds: [notConfigured(`/music ${interaction.options.getSubcommand()}`)], ephemeral: true });
+      await interaction.reply({
+        embeds: [notConfigured(`/music ${interaction.options.getSubcommand()}`)],
+        ephemeral: true,
+      });
       return;
     }
     await interaction.reply({

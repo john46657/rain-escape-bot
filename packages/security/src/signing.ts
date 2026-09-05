@@ -35,13 +35,9 @@ export interface SignatureVerification {
  * einer einzigen Primitive (HMAC-SHA256) auskommt.
  */
 export function canonicalString(payload: SignaturePayload): string {
-  return [
-    payload.method.toUpperCase(),
-    payload.path,
-    payload.timestamp,
-    payload.nonce,
-    payload.body,
-  ].join('\n');
+  return [payload.method.toUpperCase(), payload.path, payload.timestamp, payload.nonce, payload.body].join(
+    '\n',
+  );
 }
 
 /** Allgemeiner SHA-256-Hex-Hash (z. B. fuer Idempotenzschluessel). */

@@ -32,7 +32,10 @@ const rank: SlashCommand = {
             { name: t('levels.level'), value: String(profile.level), inline: true },
             { name: t('levels.rank'), value: `#${position}`, inline: true },
             { name: t('levels.xp'), value: `${profile.totalXp.toLocaleString('de-DE')}`, inline: true },
-            { name: t('levels.progress'), value: `${progressBar(profile.xp, needed)}\n${profile.xp} / ${needed} XP` },
+            {
+              name: t('levels.progress'),
+              value: `${progressBar(profile.xp, needed)}\n${profile.xp} / ${needed} XP`,
+            },
             { name: 'Nachrichten', value: profile.messages.toLocaleString('de-DE'), inline: true },
           ),
       ],
@@ -83,21 +86,27 @@ const xpAdmin: SlashCommand = {
         .setName('add')
         .setDescription('Vergibt XP')
         .addUserOption((option) => option.setName('user').setDescription('Nutzer').setRequired(true))
-        .addIntegerOption((option) => option.setName('amount').setDescription('Menge').setRequired(true).setMinValue(1)),
+        .addIntegerOption((option) =>
+          option.setName('amount').setDescription('Menge').setRequired(true).setMinValue(1),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('remove')
         .setDescription('Entzieht XP')
         .addUserOption((option) => option.setName('user').setDescription('Nutzer').setRequired(true))
-        .addIntegerOption((option) => option.setName('amount').setDescription('Menge').setRequired(true).setMinValue(1)),
+        .addIntegerOption((option) =>
+          option.setName('amount').setDescription('Menge').setRequired(true).setMinValue(1),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('setlevel')
         .setDescription('Setzt das Level direkt')
         .addUserOption((option) => option.setName('user').setDescription('Nutzer').setRequired(true))
-        .addIntegerOption((option) => option.setName('level').setDescription('Level').setRequired(true).setMinValue(0).setMaxValue(500)),
+        .addIntegerOption((option) =>
+          option.setName('level').setDescription('Level').setRequired(true).setMinValue(0).setMaxValue(500),
+        ),
     ),
   execute: async ({ interaction, services, t }) => {
     const sub = interaction.options.getSubcommand();
@@ -141,7 +150,9 @@ const levelsModule: NexusModule = {
 
         // Cooldown verhindert XP-Farming durch Nachrichten-Spam.
         const allowed = await services.cache.markOnce(
-          'xp', `${message.guildId}:${message.author.id}`, config.xpCooldownSeconds * 1000,
+          'xp',
+          `${message.guildId}:${message.author.id}`,
+          config.xpCooldownSeconds * 1000,
         );
         if (!allowed) return;
 
@@ -175,19 +186,24 @@ const levelsModule: NexusModule = {
         const channelId = config.levelUpChannelId ?? message.channelId;
         const channel = await message.guild.channels.fetch(channelId).catch(() => null);
         if (channel?.isTextBased()) {
-          const template = config.levelUpMessage ?? 'Glueckwunsch {user}, du hast **Level {level}** erreicht!';
+          const template =
+            config.levelUpMessage ?? 'Glueckwunsch {user}, du hast **Level {level}** erreicht!';
           await channel
             .send({
               embeds: [
                 embeds.success(
-                  template.replace('{user}', `<@${message.author.id}>`).replace('{level}', String(result.profile.level)),
+                  template
+                    .replace('{user}', `<@${message.author.id}>`)
+                    .replace('{level}', String(result.profile.level)),
                 ),
               ],
             })
             .catch(() => undefined);
         }
         await services.publish('levels.levelup', {
-          guildId: message.guildId, userId: message.author.id, level: result.profile.level,
+          guildId: message.guildId,
+          userId: message.author.id,
+          level: result.profile.level,
         });
       },
     },

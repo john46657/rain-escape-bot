@@ -78,7 +78,11 @@ export class PermissionService {
       if (allowed) return { allowed: true, reason: 'GRANT', matchedRule: allowed };
     }
 
-    if (this.allowDiscordAdminFallback && subject.hasDiscordAdmin && !node.startsWith('dashboard.developers')) {
+    if (
+      this.allowDiscordAdminFallback &&
+      subject.hasDiscordAdmin &&
+      !node.startsWith('dashboard.developers')
+    ) {
       return { allowed: true, reason: 'DISCORD_ADMIN' };
     }
 

@@ -55,7 +55,10 @@ export default async function TicketsPage({ params }: { params: Promise<{ guildI
             ))}
           </Table>
         ) : (
-          <EmptyState title="Keine Tickets" description="Ueber ein Ticket-Panel oder /ticket open eroeffnete Anfragen erscheinen hier." />
+          <EmptyState
+            title="Keine Tickets"
+            description="Ueber ein Ticket-Panel oder /ticket open eroeffnete Anfragen erscheinen hier."
+          />
         )}
       </Card>
     </div>

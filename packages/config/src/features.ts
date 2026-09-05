@@ -27,17 +27,34 @@ export type FeatureKey = keyof typeof FEATURES;
 const TIER_RANK: Record<PremiumTier, number> = { FREE: 0, PREMIUM: 1, PREMIUM_PLUS: 2 };
 
 /** Grenzwerte pro Tier — verhindert Ressourcenmissbrauch. */
-export const TIER_LIMITS: Record<PremiumTier, {
-  backups: number;
-  automations: number;
-  robloxGames: number;
-  apiKeys: number;
-  apiRequestsPerMinute: number;
-  ticketPanels: number;
-}> = {
+export const TIER_LIMITS: Record<
+  PremiumTier,
+  {
+    backups: number;
+    automations: number;
+    robloxGames: number;
+    apiKeys: number;
+    apiRequestsPerMinute: number;
+    ticketPanels: number;
+  }
+> = {
   FREE: { backups: 2, automations: 5, robloxGames: 1, apiKeys: 2, apiRequestsPerMinute: 60, ticketPanels: 1 },
-  PREMIUM: { backups: 15, automations: 40, robloxGames: 3, apiKeys: 10, apiRequestsPerMinute: 300, ticketPanels: 5 },
-  PREMIUM_PLUS: { backups: 50, automations: 200, robloxGames: 25, apiKeys: 50, apiRequestsPerMinute: 1200, ticketPanels: 25 },
+  PREMIUM: {
+    backups: 15,
+    automations: 40,
+    robloxGames: 3,
+    apiKeys: 10,
+    apiRequestsPerMinute: 300,
+    ticketPanels: 5,
+  },
+  PREMIUM_PLUS: {
+    backups: 50,
+    automations: 200,
+    robloxGames: 25,
+    apiKeys: 50,
+    apiRequestsPerMinute: 1200,
+    ticketPanels: 25,
+  },
 };
 
 export function hasFeature(tier: PremiumTier, feature: FeatureKey): boolean {

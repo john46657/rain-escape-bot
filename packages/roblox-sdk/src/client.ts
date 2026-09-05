@@ -16,8 +16,12 @@
 import { HOUR, MINUTE, NexusError, PreconditionError } from '@nexus/shared';
 import { RobloxHttp } from './http.js';
 import {
-  type RobloxGroupRole, type RobloxUniverse, type RobloxUser,
-  robloxGroupRoleSchema, robloxUniverseSchema, robloxUserSchema,
+  type RobloxGroupRole,
+  type RobloxUniverse,
+  type RobloxUser,
+  robloxGroupRoleSchema,
+  robloxUniverseSchema,
+  robloxUserSchema,
 } from './types.js';
 
 export interface RobloxClientOptions {
@@ -91,7 +95,7 @@ export class RobloxClient {
         `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${robloxUserId}&size=${size}&format=Png&isCircular=false`,
       );
       const entry = response.data?.[0];
-      return entry?.state === 'Completed' ? entry.imageUrl ?? null : null;
+      return entry?.state === 'Completed' ? (entry.imageUrl ?? null) : null;
     });
   }
 
@@ -109,7 +113,10 @@ export class RobloxClient {
   }
 
   /** Rang eines Nutzers in einer bestimmten Gruppe (0 = kein Mitglied). */
-  async getGroupRank(robloxUserId: string, groupId: string): Promise<{ rank: number; roleName: string } | null> {
+  async getGroupRank(
+    robloxUserId: string,
+    groupId: string,
+  ): Promise<{ rank: number; roleName: string } | null> {
     const groups = await this.getUserGroups(robloxUserId);
     const membership = groups.find((entry) => String(entry.group.id) === String(groupId));
     return membership ? { rank: membership.role.rank, roleName: membership.role.name } : null;
@@ -150,10 +157,16 @@ export class RobloxClient {
    * Wird fuer Cross-Platform-Rewards genutzt, wenn kein Server online ist.
    */
   async setDataStoreEntry(
-    universeId: string, datastoreName: string, entryKey: string, value: unknown, scope = 'global',
+    universeId: string,
+    datastoreName: string,
+    entryKey: string,
+    value: unknown,
+    scope = 'global',
   ): Promise<void> {
     this.assertOpenCloud('DataStore');
-    const url = new URL(`https://apis.roblox.com/datastores/v1/universes/${universeId}/standard-datastores/datastore/entries/entry`);
+    const url = new URL(
+      `https://apis.roblox.com/datastores/v1/universes/${universeId}/standard-datastores/datastore/entries/entry`,
+    );
     url.searchParams.set('datastoreName', datastoreName);
     url.searchParams.set('entryKey', entryKey);
     url.searchParams.set('scope', scope);
@@ -165,10 +178,15 @@ export class RobloxClient {
   }
 
   async getDataStoreEntry<T>(
-    universeId: string, datastoreName: string, entryKey: string, scope = 'global',
+    universeId: string,
+    datastoreName: string,
+    entryKey: string,
+    scope = 'global',
   ): Promise<T | null> {
     this.assertOpenCloud('DataStore');
-    const url = new URL(`https://apis.roblox.com/datastores/v1/universes/${universeId}/standard-datastores/datastore/entries/entry`);
+    const url = new URL(
+      `https://apis.roblox.com/datastores/v1/universes/${universeId}/standard-datastores/datastore/entries/entry`,
+    );
     url.searchParams.set('datastoreName', datastoreName);
     url.searchParams.set('entryKey', entryKey);
     url.searchParams.set('scope', scope);
@@ -184,7 +202,7 @@ export class RobloxClient {
     if (!this.options.apiKey) {
       throw new PreconditionError(
         `${feature} erfordert einen Roblox-Open-Cloud-API-Key (ROBLOX_API_KEY). ` +
-        'Ohne Key stellt NEXUS Kommandos in die Warteschlange, die der Game-Server abholt.',
+          'Ohne Key stellt NEXUS Kommandos in die Warteschlange, die der Game-Server abholt.',
       );
     }
   }

@@ -18,7 +18,11 @@ interface ChatCompletionResponse {
 }
 
 async function complete(
-  baseUrl: string, apiKey: string, model: string, prompt: string, locale: string,
+  baseUrl: string,
+  apiKey: string,
+  model: string,
+  prompt: string,
+  locale: string,
 ): Promise<string> {
   const response = await withTimeout(
     fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
@@ -58,7 +62,9 @@ const ask: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('ask')
     .setDescription('Stellt dem KI-Assistenten eine Frage')
-    .addStringOption((option) => option.setName('prompt').setDescription('Deine Frage').setRequired(true).setMaxLength(500)),
+    .addStringOption((option) =>
+      option.setName('prompt').setDescription('Deine Frage').setRequired(true).setMaxLength(500),
+    ),
   execute: async ({ interaction, services, locale }) => {
     const { AI_API_KEY, AI_BASE_URL, AI_MODEL } = services.env;
     if (!AI_API_KEY) {

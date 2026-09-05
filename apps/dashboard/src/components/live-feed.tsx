@@ -50,7 +50,10 @@ export function LiveFeed({ guildId }: { guildId: string }) {
       };
       socket.onmessage = (event) => {
         try {
-          const message = JSON.parse(String(event.data)) as { topic: string; payload: Record<string, unknown> };
+          const message = JSON.parse(String(event.data)) as {
+            topic: string;
+            payload: Record<string, unknown>;
+          };
           counter.current += 1;
           setEntries((previous) =>
             [
@@ -91,7 +94,11 @@ export function LiveFeed({ guildId }: { guildId: string }) {
           className={`h-3.5 w-3.5 ${status === 'online' ? 'text-success' : status === 'connecting' ? 'text-warning' : 'text-danger'}`}
         />
         <span className="text-slate-500">
-          {status === 'online' ? 'Live verbunden' : status === 'connecting' ? 'Verbinde…' : 'Getrennt — neuer Versuch laeuft'}
+          {status === 'online'
+            ? 'Live verbunden'
+            : status === 'connecting'
+              ? 'Verbinde…'
+              : 'Getrennt — neuer Versuch laeuft'}
         </span>
       </div>
 
@@ -102,9 +109,14 @@ export function LiveFeed({ guildId }: { guildId: string }) {
       ) : (
         <ul className="space-y-2">
           {entries.map((entry) => (
-            <li key={entry.id} className="animate-fade-in rounded-lg border border-base-800 bg-base-850/60 px-3 py-2">
+            <li
+              key={entry.id}
+              className="animate-fade-in rounded-lg border border-base-800 bg-base-850/60 px-3 py-2"
+            >
               <div className="flex items-center justify-between gap-3">
-                <span className="text-xs font-medium text-accent-soft">{TOPIC_LABELS[entry.topic] ?? entry.topic}</span>
+                <span className="text-xs font-medium text-accent-soft">
+                  {TOPIC_LABELS[entry.topic] ?? entry.topic}
+                </span>
                 <span className="font-mono text-[10px] text-slate-600">
                   {new Date(entry.at).toLocaleTimeString('de-DE')}
                 </span>

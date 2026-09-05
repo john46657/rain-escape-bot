@@ -19,7 +19,9 @@ describe('Berechtigungsauswertung', () => {
   });
 
   it('erlaubt dem Guild-Owner alles im eigenen Server', () => {
-    expect(service.evaluate(subject({ isGuildOwner: true }), 'discord.moderation.ban', []).allowed).toBe(true);
+    expect(service.evaluate(subject({ isGuildOwner: true }), 'discord.moderation.ban', []).allowed).toBe(
+      true,
+    );
   });
 
   it('verweigert ohne jede Zuweisung', () => {
@@ -31,15 +33,21 @@ describe('Berechtigungsauswertung', () => {
     const grants: PermissionGrant[] = [
       { subjectId: 'r1', subjectType: 'role', allow: ['discord.moderation.ban'], deny: [] },
     ];
-    expect(service.evaluate(subject({ roleIds: ['r1'] }), 'discord.moderation.ban', grants).allowed).toBe(true);
+    expect(service.evaluate(subject({ roleIds: ['r1'] }), 'discord.moderation.ban', grants).allowed).toBe(
+      true,
+    );
   });
 
   it('unterstuetzt Wildcards', () => {
     const grants: PermissionGrant[] = [
       { subjectId: 'r1', subjectType: 'role', allow: ['discord.moderation.*'], deny: [] },
     ];
-    expect(service.evaluate(subject({ roleIds: ['r1'] }), 'discord.moderation.kick', grants).allowed).toBe(true);
-    expect(service.evaluate(subject({ roleIds: ['r1'] }), 'roblox.server.shutdown', grants).allowed).toBe(false);
+    expect(service.evaluate(subject({ roleIds: ['r1'] }), 'discord.moderation.kick', grants).allowed).toBe(
+      true,
+    );
+    expect(service.evaluate(subject({ roleIds: ['r1'] }), 'roblox.server.shutdown', grants).allowed).toBe(
+      false,
+    );
   });
 
   it('laesst DENY immer vor ALLOW gewinnen', () => {
@@ -56,11 +64,15 @@ describe('Berechtigungsauswertung', () => {
     const grants: PermissionGrant[] = [
       { subjectId: 'u1', subjectType: 'user', allow: [], deny: ['discord.moderation.ban'] },
     ];
-    expect(service.evaluate(subject({ hasDiscordAdmin: true }), 'discord.moderation.ban', grants).allowed).toBe(false);
+    expect(
+      service.evaluate(subject({ hasDiscordAdmin: true }), 'discord.moderation.ban', grants).allowed,
+    ).toBe(false);
   });
 
   it('gewaehrt Discord-Administratoren die Standardrechte', () => {
-    expect(service.evaluate(subject({ hasDiscordAdmin: true }), 'discord.moderation.ban', []).allowed).toBe(true);
+    expect(service.evaluate(subject({ hasDiscordAdmin: true }), 'discord.moderation.ban', []).allowed).toBe(
+      true,
+    );
   });
 
   it('sperrt Entwicklerfunktionen fuer reine Discord-Administratoren', () => {

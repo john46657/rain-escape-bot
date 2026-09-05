@@ -17,14 +17,14 @@ Wildcards sind erlaubt (`discord.moderation.*`, `roblox.*`, `*`).
 
 ### Auswertungsreihenfolge
 
-| Schritt | Bedingung | Ergebnis |
-| --- | --- | --- |
-| 1 | Bot-Owner | erlaubt |
-| 2 | ausdrueckliches DENY (Nutzer oder Rolle) | **verweigert** |
-| 3 | Server-Owner | erlaubt |
-| 4 | ausdrueckliches ALLOW | erlaubt |
-| 5 | Discord-Administrator | erlaubt fuer Standardknoten |
-| 6 | sonst | verweigert |
+| Schritt | Bedingung                                | Ergebnis                    |
+| ------- | ---------------------------------------- | --------------------------- |
+| 1       | Bot-Owner                                | erlaubt                     |
+| 2       | ausdrueckliches DENY (Nutzer oder Rolle) | **verweigert**              |
+| 3       | Server-Owner                             | erlaubt                     |
+| 4       | ausdrueckliches ALLOW                    | erlaubt                     |
+| 5       | Discord-Administrator                    | erlaubt fuer Standardknoten |
+| 6       | sonst                                    | verweigert                  |
 
 DENY steht bewusst vor allen ALLOW-Regeln: eine gesperrte Faehigkeit bleibt
 gesperrt, auch fuer Administratoren. Entwicklerfunktionen
@@ -41,12 +41,12 @@ und akzeptiert nur den ausloesenden Nutzer.
 
 ## Umgang mit Geheimnissen
 
-| Art | Speicherung | Begruendung |
-| --- | --- | --- |
-| API-Keys (`nxs_live_…`) | SHA-256-Hash + Praefix + letzte 4 Zeichen | Hoher Entropiegehalt; der Lookup muss schnell sein |
-| Verifizierungscodes | scrypt | Geringe Entropie — ein schneller Hash waere angreifbar |
-| Roblox-Signing-Secret | nur in der Umgebung, Hash in der Datenbank | Wird zum Signieren gebraucht, nie ausgeliefert |
-| Dashboard-Sessions | signiertes, httpOnly-Cookie | Kein Discord-Token im Browser |
+| Art                     | Speicherung                                | Begruendung                                            |
+| ----------------------- | ------------------------------------------ | ------------------------------------------------------ |
+| API-Keys (`nxs_live_…`) | SHA-256-Hash + Praefix + letzte 4 Zeichen  | Hoher Entropiegehalt; der Lookup muss schnell sein     |
+| Verifizierungscodes     | scrypt                                     | Geringe Entropie — ein schneller Hash waere angreifbar |
+| Roblox-Signing-Secret   | nur in der Umgebung, Hash in der Datenbank | Wird zum Signieren gebraucht, nie ausgeliefert         |
+| Dashboard-Sessions      | signiertes, httpOnly-Cookie                | Kein Discord-Token im Browser                          |
 
 `redact()` entfernt Token, Passwoerter, Signaturen und Cookies aus jedem
 Log-Kontext. Discord-Bot-Token werden zusaetzlich per Muster erkannt.
@@ -123,13 +123,13 @@ Die Roblox-Identitaet stammt immer vom Game-Server, nie vom Client.
 
 ## Missbrauchsschutz der API
 
-| Ebene | Grenze |
-| --- | --- |
-| HTTP pro IP oder Schluessel | `API_RATE_LIMIT_PER_MINUTE` (Standard 120/min) |
-| Roblox pro Spiel | `ROBLOX_RATE_LIMIT_PER_MINUTE` (Standard 240/min) |
-| Verifizierungsversuche | 5 pro 5 Minuten je Spieler und Spiel |
-| Interaktionen pro Nutzer | 20 pro 10 Sekunden |
-| Befehls-Cooldowns | je Befehl definiert |
+| Ebene                       | Grenze                                            |
+| --------------------------- | ------------------------------------------------- |
+| HTTP pro IP oder Schluessel | `API_RATE_LIMIT_PER_MINUTE` (Standard 120/min)    |
+| Roblox pro Spiel            | `ROBLOX_RATE_LIMIT_PER_MINUTE` (Standard 240/min) |
+| Verifizierungsversuche      | 5 pro 5 Minuten je Spieler und Spiel              |
+| Interaktionen pro Nutzer    | 20 pro 10 Sekunden                                |
+| Befehls-Cooldowns           | je Befehl definiert                               |
 
 ## Meldung von Sicherheitsluecken
 

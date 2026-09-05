@@ -11,13 +11,37 @@
 import { ConflictError, NotFoundError, PreconditionError, formatCaseId, retry } from '@nexus/shared';
 import { emptyXpProfile } from '../defaults.js';
 import type {
-  AchievementEntity, AnalyticsSnapshotEntity, ApiKeyEntity, AuditLogEntity, AutomationEntity,
-  BackupEntity, EconomyProfileEntity, GiveawayEntity, GuildConfigEntity, GuildEntity,
-  InventoryEntryEntity, ItemEntity, ModerationCaseEntity, NotificationEntity,
-  PermissionGrantEntity, PromoCodeEntity, RewardGrantEntity, RobloxAccountEntity,
-  RobloxCommandEntity, RobloxEventEntity, RobloxGameEntity, RobloxGroupEntity,
-  RobloxServerEntity, SecurityIncidentEntity, TicketEntity, TicketMessageEntity,
-  TransactionEntity, UserEntity, VerificationEntity, WarningEntity, XPProfileEntity,
+  AchievementEntity,
+  AnalyticsSnapshotEntity,
+  ApiKeyEntity,
+  AuditLogEntity,
+  AutomationEntity,
+  BackupEntity,
+  EconomyProfileEntity,
+  GiveawayEntity,
+  GuildConfigEntity,
+  GuildEntity,
+  InventoryEntryEntity,
+  ItemEntity,
+  ModerationCaseEntity,
+  NotificationEntity,
+  PermissionGrantEntity,
+  PromoCodeEntity,
+  RewardGrantEntity,
+  RobloxAccountEntity,
+  RobloxCommandEntity,
+  RobloxEventEntity,
+  RobloxGameEntity,
+  RobloxGroupEntity,
+  RobloxServerEntity,
+  SecurityIncidentEntity,
+  TicketEntity,
+  TicketMessageEntity,
+  TransactionEntity,
+  UserEntity,
+  VerificationEntity,
+  WarningEntity,
+  XPProfileEntity,
 } from '../entities.js';
 import { stringifyJson } from '../json.js';
 import { levelFromTotalXp, totalXpForLevel } from '../leveling.js';
@@ -210,10 +234,17 @@ export class PrismaDataStore implements P.DataStore {
       const row = await this.db.permissionGrant.upsert({
         where: {
           guildId_subjectId_subjectType: {
-            guildId: input.guildId, subjectId: input.subjectId, subjectType: input.subjectType,
+            guildId: input.guildId,
+            subjectId: input.subjectId,
+            subjectType: input.subjectType,
           },
         },
-        create: { guildId: input.guildId, subjectId: input.subjectId, subjectType: input.subjectType, ...data },
+        create: {
+          guildId: input.guildId,
+          subjectId: input.subjectId,
+          subjectType: input.subjectType,
+          ...data,
+        },
         update: data,
       });
       return map.toPermissionGrant(row);
@@ -268,7 +299,10 @@ export class PrismaDataStore implements P.DataStore {
     listCases: async (guildId, query) => {
       const { skip, take, page, pageSize } = pageArgs(query);
       const where = clean({
-        guildId, targetId: query?.targetId, moderatorId: query?.moderatorId, action: query?.action,
+        guildId,
+        targetId: query?.targetId,
+        moderatorId: query?.moderatorId,
+        action: query?.action,
       });
       const [rows, total] = await Promise.all([
         this.db.moderationCase.findMany({ where, skip, take, orderBy: { createdAt: 'desc' } }),
@@ -309,7 +343,10 @@ export class PrismaDataStore implements P.DataStore {
       return rows.map(map.toWarning);
     },
     deactivateWarning: async (id) => {
-      const result = await this.db.warning.updateMany({ where: { id, active: true }, data: { active: false } });
+      const result = await this.db.warning.updateMany({
+        where: { id, active: true },
+        data: { active: false },
+      });
       return result.count > 0;
     },
     expireWarnings: async (now) => {
@@ -409,7 +446,8 @@ export class PrismaDataStore implements P.DataStore {
         async () =>
           this.db.$transaction(async (tx) => {
             const aggregate = await tx.ticket.aggregate({
-              where: { guildId: input.guildId }, _max: { number: true },
+              where: { guildId: input.guildId },
+              _max: { number: true },
             });
             const maxRow = aggregate['_max'] as { number?: number | null } | undefined;
             const number = (maxRow?.number ?? 0) + 1;
@@ -479,12 +517,16 @@ export class PrismaDataStore implements P.DataStore {
     },
     listMessages: async (ticketId): Promise<TicketMessageEntity[]> => {
       const rows = await this.db.ticketMessage.findMany({
-        where: { ticketId }, orderBy: { createdAt: 'asc' }, take: 5_000,
+        where: { ticketId },
+        orderBy: { createdAt: 'asc' },
+        take: 5_000,
       });
       return rows.map(map.toTicketMessage);
     },
     countOpenByUser: async (guildId, userId) =>
-      this.db.ticket.count({ where: { guildId, openerId: userId, status: { in: ['OPEN', 'CLAIMED', 'LOCKED'] } } }),
+      this.db.ticket.count({
+        where: { guildId, openerId: userId, status: { in: ['OPEN', 'CLAIMED', 'LOCKED'] } },
+      }),
   };
 
   // ============================================================== Levels
@@ -527,7 +569,10 @@ export class PrismaDataStore implements P.DataStore {
     },
     leaderboard: async (guildId, limit = 10, offset = 0) => {
       const rows = await this.db.xPProfile.findMany({
-        where: { guildId }, orderBy: { totalXp: 'desc' }, take: limit, skip: offset,
+        where: { guildId },
+        orderBy: { totalXp: 'desc' },
+        take: limit,
+        skip: offset,
       });
       return rows.map((row, index) => ({ ...map.toXp(row), rank: offset + index + 1 }));
     },
@@ -577,7 +622,9 @@ export class PrismaDataStore implements P.DataStore {
               where: { guildId_userId: { guildId: mutation.guildId, userId: mutation.userId } },
             });
             return {
-              profile: profileRow ? map.toEconomy(profileRow) : await this.economy.getProfile(mutation.guildId, mutation.userId),
+              profile: profileRow
+                ? map.toEconomy(profileRow)
+                : await this.economy.getProfile(mutation.guildId, mutation.userId),
               transaction: map.toTransaction(existing),
             };
           }
@@ -592,7 +639,8 @@ export class PrismaDataStore implements P.DataStore {
         const next = current[mutation.target] + mutation.amount;
         if (next < 0 && !mutation.allowNegative) {
           throw new PreconditionError('Nicht genuegend Guthaben', {
-            required: Math.abs(mutation.amount), available: current[mutation.target],
+            required: Math.abs(mutation.amount),
+            available: current[mutation.target],
           });
         }
         if (mutation.target === 'bank' && next > current.bankCapacity) {
@@ -657,29 +705,49 @@ export class PrismaDataStore implements P.DataStore {
         // Bedingtes Update: das Guthaben wird in derselben Anweisung geprueft.
         const debit = await tx.economyProfile.updateMany({
           where: { id: from.id, wallet: { gte: amount }, version: from.version },
-          data: { wallet: { decrement: amount }, totalSpent: { increment: amount }, version: { increment: 1 } },
+          data: {
+            wallet: { decrement: amount },
+            totalSpent: { increment: amount },
+            version: { increment: 1 },
+          },
         });
         if (debit.count === 0) {
-          throw new PreconditionError('Nicht genuegend Guthaben', { required: amount, available: from.wallet });
+          throw new PreconditionError('Nicht genuegend Guthaben', {
+            required: amount,
+            available: from.wallet,
+          });
         }
 
         const toRow = await tx.economyProfile.upsert({
           where: { guildId_userId: { guildId, userId: toUserId } },
           create: { guildId, userId: toUserId, wallet: amount, totalEarned: amount },
-          update: { wallet: { increment: amount }, totalEarned: { increment: amount }, version: { increment: 1 } },
+          update: {
+            wallet: { increment: amount },
+            totalEarned: { increment: amount },
+            version: { increment: 1 },
+          },
         });
 
         await tx.transaction.createMany({
           data: [
             clean({
-              guildId, userId: fromUserId, type: 'TRANSFER_OUT', amount: -amount,
-              balanceAfter: from.wallet - amount + from.bank, counterpartyId: toUserId,
-              reason, idempotencyKey,
+              guildId,
+              userId: fromUserId,
+              type: 'TRANSFER_OUT',
+              amount: -amount,
+              balanceAfter: from.wallet - amount + from.bank,
+              counterpartyId: toUserId,
+              reason,
+              idempotencyKey,
             }),
             clean({
-              guildId, userId: toUserId, type: 'TRANSFER_IN', amount,
+              guildId,
+              userId: toUserId,
+              type: 'TRANSFER_IN',
+              amount,
               balanceAfter: map.toEconomy(toRow).wallet + map.toEconomy(toRow).bank,
-              counterpartyId: fromUserId, reason,
+              counterpartyId: fromUserId,
+              reason,
             }),
           ],
         });
@@ -699,19 +767,24 @@ export class PrismaDataStore implements P.DataStore {
     },
     leaderboard: async (guildId, limit = 10) => {
       const rows = await this.db.economyProfile.findMany({
-        where: { guildId }, orderBy: [{ wallet: 'desc' }, { bank: 'desc' }], take: limit,
+        where: { guildId },
+        orderBy: [{ wallet: 'desc' }, { bank: 'desc' }],
+        take: limit,
       });
       return rows.map((row, index) => ({ ...map.toEconomy(row), rank: index + 1 }));
     },
     listTransactions: async (guildId, userId, limit = 20): Promise<TransactionEntity[]> => {
       const rows = await this.db.transaction.findMany({
-        where: { guildId, userId }, orderBy: { createdAt: 'desc' }, take: limit,
+        where: { guildId, userId },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
       });
       return rows.map(map.toTransaction);
     },
     listItems: async (guildId, enabledOnly = true): Promise<ItemEntity[]> => {
       const rows = await this.db.item.findMany({
-        where: clean({ guildId, enabled: enabledOnly ? true : undefined }), orderBy: { price: 'asc' },
+        where: clean({ guildId, enabled: enabledOnly ? true : undefined }),
+        orderBy: { price: 'asc' },
       });
       return rows.map(map.toItem);
     },
@@ -721,10 +794,18 @@ export class PrismaDataStore implements P.DataStore {
     },
     upsertItem: async (item): Promise<ItemEntity> => {
       const data = clean({
-        name: item.name, description: item.description, emoji: item.emoji, price: item.price,
-        sellPrice: item.sellPrice, kind: item.kind, roleId: item.roleId,
-        payload: stringifyJson(item.payload), stock: item.stock, maxPerUser: item.maxPerUser,
-        tradable: item.tradable, enabled: item.enabled,
+        name: item.name,
+        description: item.description,
+        emoji: item.emoji,
+        price: item.price,
+        sellPrice: item.sellPrice,
+        kind: item.kind,
+        roleId: item.roleId,
+        payload: stringifyJson(item.payload),
+        stock: item.stock,
+        maxPerUser: item.maxPerUser,
+        tradable: item.tradable,
+        enabled: item.enabled,
       });
       const row = await this.db.item.upsert({
         where: { guildId_key: { guildId: item.guildId, key: item.key } },
@@ -803,7 +884,8 @@ export class PrismaDataStore implements P.DataStore {
     },
     incrementAttempts: async (id) => {
       const row = await this.db.verification.update({
-        where: { id }, data: { attempts: { increment: 1 } },
+        where: { id },
+        data: { attempts: { increment: 1 } },
       });
       const attempts = Number(row['attempts'] ?? 0);
       if (attempts >= Number(row['maxAttempts'] ?? 5)) {
@@ -813,17 +895,20 @@ export class PrismaDataStore implements P.DataStore {
     },
     markVerified: async (id, robloxUserId) => {
       await this.db.verification.update({
-        where: { id }, data: { status: 'VERIFIED', robloxUserId, usedAt: new Date() },
+        where: { id },
+        data: { status: 'VERIFIED', robloxUserId, usedAt: new Date() },
       });
     },
     invalidateForUser: async (userId) => {
       await this.db.verification.updateMany({
-        where: { userId, status: 'PENDING' }, data: { status: 'REVOKED' },
+        where: { userId, status: 'PENDING' },
+        data: { status: 'REVOKED' },
       });
     },
     purgeExpired: async (now) => {
       const result = await this.db.verification.updateMany({
-        where: { status: 'PENDING', expiresAt: { lte: now } }, data: { status: 'EXPIRED' },
+        where: { status: 'PENDING', expiresAt: { lte: now } },
+        data: { status: 'EXPIRED' },
       });
       return result.count;
     },
@@ -836,11 +921,15 @@ export class PrismaDataStore implements P.DataStore {
         where: { robloxUserId: input.robloxUserId },
       });
       if (conflicting && String(conflicting['userId']) !== input.userId) {
-        throw new ConflictError('Dieser Roblox-Account ist bereits mit einem anderen Discord-Konto verknuepft');
+        throw new ConflictError(
+          'Dieser Roblox-Account ist bereits mit einem anderen Discord-Konto verknuepft',
+        );
       }
       const existing = await this.db.robloxAccount.findUnique({ where: { userId: input.userId } });
       const previousUsername =
-        existing && String(existing['username']) !== input.username ? String(existing['username']) : undefined;
+        existing && String(existing['username']) !== input.username
+          ? String(existing['username'])
+          : undefined;
       const data = clean({
         robloxUserId: input.robloxUserId,
         username: input.username,
@@ -882,7 +971,8 @@ export class PrismaDataStore implements P.DataStore {
         data: clean({
           username,
           displayName,
-          previousUsername: String(existing['username']) !== username ? String(existing['username']) : undefined,
+          previousUsername:
+            String(existing['username']) !== username ? String(existing['username']) : undefined,
           usernameCheckedAt: new Date(),
           lastSyncedAt: new Date(),
         }),
@@ -932,14 +1022,21 @@ export class PrismaDataStore implements P.DataStore {
       });
       const row = await this.db.robloxServer.upsert({
         where: { gameId_jobId: { gameId: input.gameId, jobId: input.jobId } },
-        create: { gameId: input.gameId, jobId: input.jobId, startedAt: input.startedAt ?? new Date(), ...data },
+        create: {
+          gameId: input.gameId,
+          jobId: input.jobId,
+          startedAt: input.startedAt ?? new Date(),
+          ...data,
+        },
         update: data,
       });
       return map.toServer(row);
     },
     listServers: async (gameId): Promise<RobloxServerEntity[]> => {
       const rows = await this.db.robloxServer.findMany({
-        where: clean({ gameId }), orderBy: { lastHeartbeatAt: 'desc' }, take: 500,
+        where: clean({ gameId }),
+        orderBy: { lastHeartbeatAt: 'desc' },
+        take: 500,
       });
       return rows.map(map.toServer);
     },
@@ -964,9 +1061,12 @@ export class PrismaDataStore implements P.DataStore {
             occurredAt: input.occurredAt,
           }),
         });
-        await this.db.robloxGame.update({
-          where: { id: input.gameId }, data: { lastEventAt: new Date() },
-        }).catch(() => undefined);
+        await this.db.robloxGame
+          .update({
+            where: { id: input.gameId },
+            data: { lastEventAt: new Date() },
+          })
+          .catch(() => undefined);
         return { event: map.toEvent(row), duplicate: false };
       } catch (error) {
         if (!isUniqueViolation(error)) throw error;
@@ -977,7 +1077,8 @@ export class PrismaDataStore implements P.DataStore {
     },
     markEventProcessed: async (id, error) => {
       await this.db.robloxEvent.update({
-        where: { id }, data: clean({ processedAt: new Date(), error: error ?? null }),
+        where: { id },
+        data: clean({ processedAt: new Date(), error: error ?? null }),
       });
     },
     listEvents: async (query) => {
@@ -1003,7 +1104,10 @@ export class PrismaDataStore implements P.DataStore {
       await this.db.robloxEventRoute.upsert({
         where: {
           guildId_gameId_eventType_channelId: {
-            guildId: input.guildId, gameId: input.gameId, eventType: input.eventType, channelId: input.channelId,
+            guildId: input.guildId,
+            gameId: input.gameId,
+            eventType: input.eventType,
+            channelId: input.channelId,
           },
         },
         create: { ...input },
@@ -1031,7 +1135,9 @@ export class PrismaDataStore implements P.DataStore {
         const now = new Date();
         const candidates = await tx.robloxCommand.findMany({
           where: {
-            gameId, status: 'PENDING', expiresAt: { gt: now },
+            gameId,
+            status: 'PENDING',
+            expiresAt: { gt: now },
             OR: [{ jobId: null }, { jobId }],
           },
           orderBy: { createdAt: 'asc' },
@@ -1054,7 +1160,7 @@ export class PrismaDataStore implements P.DataStore {
           status: result.ok ? 'ACKNOWLEDGED' : 'FAILED',
           acknowledgedAt: new Date(),
           result: result.message,
-          error: result.ok ? null : result.message ?? 'unbekannter Fehler',
+          error: result.ok ? null : (result.message ?? 'unbekannter Fehler'),
         }),
       });
     },
@@ -1093,13 +1199,15 @@ export class PrismaDataStore implements P.DataStore {
     },
     endSession: async (gameId, robloxUserId, at) => {
       const row = await this.db.robloxSession.findFirst({
-        where: { gameId, robloxUserId, leftAt: null }, orderBy: { joinedAt: 'desc' },
+        where: { gameId, robloxUserId, leftAt: null },
+        orderBy: { joinedAt: 'desc' },
       });
       if (!row) return null;
       const joinedAt = new Date(row['joinedAt'] as string);
       const durationSeconds = Math.max(0, Math.round((at.getTime() - joinedAt.getTime()) / 1000));
       await this.db.robloxSession.update({
-        where: { id: String(row['id']) }, data: { leftAt: at, durationSeconds },
+        where: { id: String(row['id']) },
+        data: { leftAt: at, durationSeconds },
       });
       return durationSeconds;
     },
@@ -1135,12 +1243,18 @@ export class PrismaDataStore implements P.DataStore {
     markGranted: async (id, error) => {
       await this.db.rewardGrant.update({
         where: { id },
-        data: clean({ status: error ? 'FAILED' : 'GRANTED', error, grantedAt: error ? undefined : new Date() }),
+        data: clean({
+          status: error ? 'FAILED' : 'GRANTED',
+          error,
+          grantedAt: error ? undefined : new Date(),
+        }),
       });
     },
     listForUser: async (userId, limit = 25): Promise<RewardGrantEntity[]> => {
       const rows = await this.db.rewardGrant.findMany({
-        where: { userId }, orderBy: { createdAt: 'desc' }, take: limit,
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
       });
       return rows.map(map.toRewardGrant);
     },
@@ -1157,9 +1271,15 @@ export class PrismaDataStore implements P.DataStore {
     },
     upsert: async (input): Promise<AchievementEntity> => {
       const data = clean({
-        name: input.name, description: input.description, rarity: input.rarity, icon: input.icon,
-        hidden: input.hidden, origin: input.origin, rewards: stringifyJson(input.rewards),
-        condition: stringifyJson(input.condition), enabled: input.enabled,
+        name: input.name,
+        description: input.description,
+        rarity: input.rarity,
+        icon: input.icon,
+        hidden: input.hidden,
+        origin: input.origin,
+        rewards: stringifyJson(input.rewards),
+        condition: stringifyJson(input.condition),
+        enabled: input.enabled,
       });
       const row = await this.db.achievement.upsert({
         where: { guildId_key: { guildId: input.guildId, key: input.key } },
@@ -1268,7 +1388,9 @@ export class PrismaDataStore implements P.DataStore {
     },
     list: async (guildId, endedOnly): Promise<GiveawayEntity[]> => {
       const rows = await this.db.giveaway.findMany({
-        where: clean({ guildId, ended: endedOnly }), orderBy: { endsAt: 'desc' }, take: 100,
+        where: clean({ guildId, ended: endedOnly }),
+        orderBy: { endsAt: 'desc' },
+        take: 100,
       });
       return rows.map(map.toGiveaway);
     },
@@ -1290,7 +1412,9 @@ export class PrismaDataStore implements P.DataStore {
       await this.db.$transaction(async (tx) => {
         const row = await tx.giveaway.findUnique({ where: { id } });
         if (!row) return;
-        const entries = (JSON.parse(String(row['entries'] ?? '[]')) as string[]).filter((entry) => entry !== userId);
+        const entries = (JSON.parse(String(row['entries'] ?? '[]')) as string[]).filter(
+          (entry) => entry !== userId,
+        );
         await tx.giveaway.update({ where: { id }, data: { entries: stringifyJson(entries) } });
       });
     },
@@ -1299,12 +1423,16 @@ export class PrismaDataStore implements P.DataStore {
     },
     finish: async (id, winners): Promise<GiveawayEntity> => {
       const row = await this.db.giveaway.update({
-        where: { id }, data: { ended: true, winners: stringifyJson(winners) },
+        where: { id },
+        data: { ended: true, winners: stringifyJson(winners) },
       });
       return map.toGiveaway(row);
     },
     listDue: async (now): Promise<GiveawayEntity[]> => {
-      const rows = await this.db.giveaway.findMany({ where: { ended: false, endsAt: { lte: now } }, take: 100 });
+      const rows = await this.db.giveaway.findMany({
+        where: { ended: false, endsAt: { lte: now } },
+        take: 100,
+      });
       return rows.map(map.toGiveaway);
     },
   };
@@ -1395,8 +1523,15 @@ export class PrismaDataStore implements P.DataStore {
         where: { guildId },
         orderBy: { createdAt: 'desc' },
         select: {
-          id: true, guildId: true, name: true, createdById: true, summary: true,
-          sizeBytes: true, checksum: true, restoredAt: true, createdAt: true,
+          id: true,
+          guildId: true,
+          name: true,
+          createdById: true,
+          summary: true,
+          sizeBytes: true,
+          checksum: true,
+          restoredAt: true,
+          createdAt: true,
         },
       });
       return rows.map(map.toBackup);
@@ -1449,15 +1584,20 @@ export class PrismaDataStore implements P.DataStore {
     recordUsage: async (id, entry) => {
       // Fire-and-forget-Charakter: Logging darf den Request nicht blockieren.
       await Promise.all([
-        this.db.apiKey.update({
-          where: { id }, data: { usageCount: { increment: 1 }, lastUsedAt: new Date() },
-        }).catch(() => undefined),
+        this.db.apiKey
+          .update({
+            where: { id },
+            data: { usageCount: { increment: 1 }, lastUsedAt: new Date() },
+          })
+          .catch(() => undefined),
         this.db.apiRequestLog.create({ data: clean({ apiKeyId: id, ...entry }) }).catch(() => undefined),
       ]);
     },
     listRequests: async (apiKeyId, limit = 50) => {
       const rows = await this.db.apiRequestLog.findMany({
-        where: { apiKeyId }, orderBy: { createdAt: 'desc' }, take: limit,
+        where: { apiKeyId },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
       });
       return rows.map((row) => ({
         method: String(row['method']),
@@ -1503,13 +1643,18 @@ export class PrismaDataStore implements P.DataStore {
       await this.db.analyticsSnapshot.upsert({
         where: {
           guildId_scope_granularity_bucket: {
-            guildId: snapshot.guildId, scope: snapshot.scope,
-            granularity: snapshot.granularity, bucket: snapshot.bucket,
+            guildId: snapshot.guildId,
+            scope: snapshot.scope,
+            granularity: snapshot.granularity,
+            bucket: snapshot.bucket,
           },
         },
         create: {
-          guildId: snapshot.guildId, scope: snapshot.scope,
-          granularity: snapshot.granularity, bucket: snapshot.bucket, ...data,
+          guildId: snapshot.guildId,
+          scope: snapshot.scope,
+          granularity: snapshot.granularity,
+          bucket: snapshot.bucket,
+          ...data,
         },
         update: data,
       });

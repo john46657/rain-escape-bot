@@ -1,7 +1,15 @@
 import type { ReactNode } from 'react';
 
-export function Card({ title, action, children, className = '' }: {
-  title?: string; action?: ReactNode; children: ReactNode; className?: string;
+export function Card({
+  title,
+  action,
+  children,
+  className = '',
+}: {
+  title?: string;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
 }) {
   return (
     <section className={`card ${className}`}>
@@ -16,8 +24,16 @@ export function Card({ title, action, children, className = '' }: {
   );
 }
 
-export function StatCard({ label, value, hint, tone = 'default' }: {
-  label: string; value: string | number; hint?: string; tone?: 'default' | 'success' | 'warning' | 'danger';
+export function StatCard({
+  label,
+  value,
+  hint,
+  tone = 'default',
+}: {
+  label: string;
+  value: string | number;
+  hint?: string;
+  tone?: 'default' | 'success' | 'warning' | 'danger';
 }) {
   const tones = {
     default: 'text-slate-100',
@@ -54,7 +70,10 @@ export function Table({ head, children }: { head: string[]; children: ReactNode 
         <thead>
           <tr className="border-b border-base-700/70">
             {head.map((label) => (
-              <th key={label} className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+              <th
+                key={label}
+                className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wider text-slate-500"
+              >
                 {label}
               </th>
             ))}

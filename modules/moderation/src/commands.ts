@@ -3,16 +3,27 @@
  * Jeder Befehl prueft: NEXUS-Berechtigung -> Discord-Rechte -> Hierarchie -> Ausfuehrung.
  */
 import {
-  ChannelType, PermissionFlagsBits, SlashCommandBuilder, type GuildMember, type TextChannel,
+  ChannelType,
+  PermissionFlagsBits,
+  SlashCommandBuilder,
+  type GuildMember,
+  type TextChannel,
 } from 'discord.js';
 import {
-  MODERATION_PERMISSIONS, assertBotPermission, bulkDelete, embeds, requireConfirmation,
-  truncate, writeAudit, type SlashCommand,
+  MODERATION_PERMISSIONS,
+  assertBotPermission,
+  bulkDelete,
+  embeds,
+  requireConfirmation,
+  truncate,
+  writeAudit,
+  type SlashCommand,
 } from '@nexus/bot-core';
 import { LIMITS, PreconditionError, discordTimestamp, formatDuration, parseDuration } from '@nexus/shared';
 import { ModerationService } from './service.js';
 
-const reasonOption = (builder: SlashCommandBuilder | ReturnType<SlashCommandBuilder['addUserOption']>) => builder;
+const reasonOption = (builder: SlashCommandBuilder | ReturnType<SlashCommandBuilder['addUserOption']>) =>
+  builder;
 
 function parseRequiredDuration(input: string): number {
   const duration = parseDuration(input);
@@ -91,7 +102,11 @@ export const unban: SlashCommand = {
     .setDescription('Hebt einen Bann auf')
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
     .addStringOption((option) =>
-      option.setName('user_id').setDescription('Discord-ID des gebannten Nutzers').setRequired(true).setAutocomplete(true),
+      option
+        .setName('user_id')
+        .setDescription('Discord-ID des gebannten Nutzers')
+        .setRequired(true)
+        .setAutocomplete(true),
     )
     .addStringOption((option) => option.setName('reason').setDescription('Grund').setMaxLength(500)),
   autocomplete: async ({ interaction }) => {
@@ -100,7 +115,10 @@ export const unban: SlashCommand = {
     const choices = [...(bans?.values() ?? [])]
       .filter((entry) => entry.user.tag.toLowerCase().includes(focused) || entry.user.id.includes(focused))
       .slice(0, LIMITS.autocompleteChoices)
-      .map((entry) => ({ name: truncate(`${entry.user.tag} (${entry.user.id})`, 100), value: entry.user.id }));
+      .map((entry) => ({
+        name: truncate(`${entry.user.tag} (${entry.user.id})`, 100),
+        value: entry.user.id,
+      }));
     await interaction.respond(choices);
   },
   execute: async ({ interaction, t, services }) => {
@@ -216,7 +234,9 @@ export const timeout: SlashCommand = {
       embeds: [
         embeds.success(
           t('moderation.timeoutSuccess', {
-            user: target.tag, duration: formatDuration(durationMs, 3), case: entry.caseId,
+            user: target.tag,
+            duration: formatDuration(durationMs, 3),
+            case: entry.caseId,
           }),
         ),
       ],
@@ -262,7 +282,9 @@ export const warn: SlashCommand = {
     .setDescription('Verwarnt einen Nutzer')
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
     .addUserOption((option) => option.setName('user').setDescription('Zielnutzer').setRequired(true))
-    .addStringOption((option) => option.setName('reason').setDescription('Grund').setRequired(true).setMaxLength(500))
+    .addStringOption((option) =>
+      option.setName('reason').setDescription('Grund').setRequired(true).setMaxLength(500),
+    )
     .addStringOption((option) => option.setName('expires').setDescription('Verfaellt nach, z. B. 30d')),
   execute: async ({ interaction, t, services }) => {
     const target = interaction.options.getUser('user', true);
@@ -339,7 +361,12 @@ export const clear: SlashCommand = {
     .setDescription('Loescht Nachrichten im aktuellen Kanal')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addIntegerOption((option) =>
-      option.setName('amount').setDescription('Anzahl (1-100)').setRequired(true).setMinValue(1).setMaxValue(100),
+      option
+        .setName('amount')
+        .setDescription('Anzahl (1-100)')
+        .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(100),
     )
     .addUserOption((option) => option.setName('user').setDescription('Nur Nachrichten dieses Nutzers'))
     .addStringOption((option) => option.setName('reason').setDescription('Grund')),
@@ -353,7 +380,9 @@ export const clear: SlashCommand = {
     }
 
     assertBotPermission(
-      interaction.guild!, MODERATION_PERMISSIONS.manageMessages.flag, MODERATION_PERMISSIONS.manageMessages.label,
+      interaction.guild!,
+      MODERATION_PERMISSIONS.manageMessages.flag,
+      MODERATION_PERMISSIONS.manageMessages.label,
     );
     await interaction.deferReply({ ephemeral: true });
 
@@ -379,7 +408,9 @@ export const clear: SlashCommand = {
       embeds: [
         embeds.success(
           t('moderation.clearSuccess', { count: deleted }) +
-            (skippedTooOld > 0 ? `\n⚠️ ${skippedTooOld} Nachricht(en) waren aelter als 14 Tage (Discord-Limit).` : ''),
+            (skippedTooOld > 0
+              ? `\n⚠️ ${skippedTooOld} Nachricht(en) waren aelter als 14 Tage (Discord-Limit).`
+              : ''),
         ),
       ],
     });
@@ -406,7 +437,9 @@ export const slowmode: SlashCommand = {
       throw new PreconditionError('Slowmode ist nur in Textkanaelen moeglich');
     }
     assertBotPermission(
-      interaction.guild!, MODERATION_PERMISSIONS.manageChannels.flag, MODERATION_PERMISSIONS.manageChannels.label,
+      interaction.guild!,
+      MODERATION_PERMISSIONS.manageChannels.flag,
+      MODERATION_PERMISSIONS.manageChannels.label,
     );
     await channel.setRateLimitPerUser(seconds, `Slowmode via NEXUS — ${interaction.user.tag}`);
     await writeAudit(services, {
@@ -421,7 +454,9 @@ export const slowmode: SlashCommand = {
       metadata: { seconds },
     });
     await interaction.reply({
-      embeds: [embeds.success(t('moderation.slowmodeSuccess', { duration: seconds === 0 ? 'aus' : `${seconds}s` }))],
+      embeds: [
+        embeds.success(t('moderation.slowmodeSuccess', { duration: seconds === 0 ? 'aus' : `${seconds}s` })),
+      ],
     });
   },
 };
@@ -441,15 +476,27 @@ export const lock: SlashCommand = {
       throw new PreconditionError('Nur Textkanaele koennen gesperrt werden');
     }
     assertBotPermission(
-      interaction.guild!, MODERATION_PERMISSIONS.manageChannels.flag, MODERATION_PERMISSIONS.manageChannels.label,
+      interaction.guild!,
+      MODERATION_PERMISSIONS.manageChannels.flag,
+      MODERATION_PERMISSIONS.manageChannels.label,
     );
-    await channel.permissionOverwrites.edit(interaction.guild!.roles.everyone, { SendMessages: false }, {
-      reason: interaction.options.getString('reason') ?? `Lock via NEXUS — ${interaction.user.tag}`,
-    });
+    await channel.permissionOverwrites.edit(
+      interaction.guild!.roles.everyone,
+      { SendMessages: false },
+      {
+        reason: interaction.options.getString('reason') ?? `Lock via NEXUS — ${interaction.user.tag}`,
+      },
+    );
     await writeAudit(services, {
-      guildId: interaction.guildId!, actorId: interaction.user.id, actorType: 'discord',
-      action: 'moderation.lock', targetId: channel.id, targetType: 'channel',
-      result: 'SUCCESS', reason: interaction.options.getString('reason'), metadata: {},
+      guildId: interaction.guildId!,
+      actorId: interaction.user.id,
+      actorType: 'discord',
+      action: 'moderation.lock',
+      targetId: channel.id,
+      targetType: 'channel',
+      result: 'SUCCESS',
+      reason: interaction.options.getString('reason'),
+      metadata: {},
     });
     await interaction.reply({ embeds: [embeds.success(t('moderation.lockSuccess'))] });
   },
@@ -468,13 +515,23 @@ export const unlock: SlashCommand = {
     if (!channel || channel.type !== ChannelType.GuildText) {
       throw new PreconditionError('Nur Textkanaele koennen entsperrt werden');
     }
-    await channel.permissionOverwrites.edit(interaction.guild!.roles.everyone, { SendMessages: null }, {
-      reason: `Unlock via NEXUS — ${interaction.user.tag}`,
-    });
+    await channel.permissionOverwrites.edit(
+      interaction.guild!.roles.everyone,
+      { SendMessages: null },
+      {
+        reason: `Unlock via NEXUS — ${interaction.user.tag}`,
+      },
+    );
     await writeAudit(services, {
-      guildId: interaction.guildId!, actorId: interaction.user.id, actorType: 'discord',
-      action: 'moderation.unlock', targetId: channel.id, targetType: 'channel',
-      result: 'SUCCESS', reason: null, metadata: {},
+      guildId: interaction.guildId!,
+      actorId: interaction.user.id,
+      actorType: 'discord',
+      action: 'moderation.unlock',
+      targetId: channel.id,
+      targetType: 'channel',
+      result: 'SUCCESS',
+      reason: null,
+      metadata: {},
     });
     await interaction.reply({ embeds: [embeds.success(t('moderation.unlockSuccess'))] });
   },
@@ -489,13 +546,17 @@ export const nick: SlashCommand = {
     .setDescription('Aendert den Nickname eines Mitglieds')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageNicknames)
     .addUserOption((option) => option.setName('user').setDescription('Zielnutzer').setRequired(true))
-    .addStringOption((option) => option.setName('nickname').setDescription('Neuer Nickname (leer = zuruecksetzen)').setMaxLength(32)),
+    .addStringOption((option) =>
+      option.setName('nickname').setDescription('Neuer Nickname (leer = zuruecksetzen)').setMaxLength(32),
+    ),
   execute: async ({ interaction, t, services }) => {
     const target = interaction.options.getUser('user', true);
     const nickname = interaction.options.getString('nickname');
     const member = await interaction.guild!.members.fetch(target.id);
     assertBotPermission(
-      interaction.guild!, MODERATION_PERMISSIONS.manageNicknames.flag, MODERATION_PERMISSIONS.manageNicknames.label,
+      interaction.guild!,
+      MODERATION_PERMISSIONS.manageNicknames.flag,
+      MODERATION_PERMISSIONS.manageNicknames.label,
     );
 
     await interaction.deferReply();
@@ -512,7 +573,9 @@ export const nick: SlashCommand = {
       notify: false,
       metadata: { previousNickname: previous, newNickname: nickname },
     });
-    await interaction.editReply({ embeds: [embeds.success(t('moderation.nickSuccess', { user: target.tag }))] });
+    await interaction.editReply({
+      embeds: [embeds.success(t('moderation.nickSuccess', { user: target.tag }))],
+    });
   },
 };
 
@@ -547,14 +610,20 @@ export const role: SlashCommand = {
     const botMember = guild.members.me!;
     const executor = interaction.member as GuildMember;
 
-    assertBotPermission(guild, MODERATION_PERMISSIONS.manageRoles.flag, MODERATION_PERMISSIONS.manageRoles.label);
+    assertBotPermission(
+      guild,
+      MODERATION_PERMISSIONS.manageRoles.flag,
+      MODERATION_PERMISSIONS.manageRoles.label,
+    );
 
     // Rollenhierarchie: weder Bot noch Moderator duerfen hoehere Rollen vergeben.
     if (targetRole.position >= botMember.roles.highest.position) {
       throw new PreconditionError('Diese Rolle steht ueber meiner hoechsten Rolle');
     }
     if (executor.id !== guild.ownerId && targetRole.position >= executor.roles.highest.position) {
-      throw new PreconditionError('Du kannst keine Rolle vergeben, die gleich hoch oder hoeher als deine ist');
+      throw new PreconditionError(
+        'Du kannst keine Rolle vergeben, die gleich hoch oder hoeher als deine ist',
+      );
     }
 
     await interaction.deferReply();
@@ -580,7 +649,8 @@ export const role: SlashCommand = {
       embeds: [
         embeds.success(
           t(sub === 'add' ? 'moderation.roleAdded' : 'moderation.roleRemoved', {
-            role: targetRole.name, user: target.tag,
+            role: targetRole.name,
+            user: target.tag,
           }),
         ),
       ],
@@ -597,7 +667,9 @@ export const note: SlashCommand = {
     .setDescription('Speichert eine interne Notiz zu einem Nutzer')
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
     .addUserOption((option) => option.setName('user').setDescription('Zielnutzer').setRequired(true))
-    .addStringOption((option) => option.setName('content').setDescription('Notiz').setRequired(true).setMaxLength(500)),
+    .addStringOption((option) =>
+      option.setName('content').setDescription('Notiz').setRequired(true).setMaxLength(500),
+    ),
   execute: async ({ interaction, t, services }) => {
     const target = interaction.options.getUser('user', true);
     const content = interaction.options.getString('content', true);
@@ -630,7 +702,9 @@ export const modhistory: SlashCommand = {
     const target = interaction.options.getUser('user', true);
     const page = interaction.options.getInteger('page') ?? 1;
     const result = await services.store.moderation.listCases(interaction.guildId!, {
-      targetId: target.id, page, pageSize: 10,
+      targetId: target.id,
+      page,
+      pageSize: 10,
     });
 
     if (result.items.length === 0) {
@@ -648,11 +722,12 @@ export const modhistory: SlashCommand = {
 
     await interaction.reply({
       embeds: [
-        embeds
-          .primary(`📚 ${target.tag}`, description)
-          .setFooter({
-            text: t('common.page', { page: result.page, total: Math.max(1, Math.ceil(result.total / result.pageSize)) }),
+        embeds.primary(`📚 ${target.tag}`, description).setFooter({
+          text: t('common.page', {
+            page: result.page,
+            total: Math.max(1, Math.ceil(result.total / result.pageSize)),
           }),
+        }),
       ],
     });
   },
@@ -665,7 +740,9 @@ export const caseCommand: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('case')
     .setDescription('Zeigt einen Moderationsfall')
-    .addStringOption((option) => option.setName('id').setDescription('Fall-ID, z. B. NX-4821-000137').setRequired(true)),
+    .addStringOption((option) =>
+      option.setName('id').setDescription('Fall-ID, z. B. NX-4821-000137').setRequired(true),
+    ),
   execute: async ({ interaction, t, services }) => {
     const caseId = interaction.options.getString('id', true);
     const entry = await services.store.moderation.getCase(interaction.guildId!, caseId);
@@ -682,7 +759,11 @@ export const caseCommand: SlashCommand = {
         embeds
           .primary(t('moderation.caseTitle', { case: entry.caseId }), ModerationService.label(entry.action))
           .addFields(
-            { name: t('moderation.target'), value: `<@${entry.targetId}>\n\`${entry.targetId}\``, inline: true },
+            {
+              name: t('moderation.target'),
+              value: `<@${entry.targetId}>\n\`${entry.targetId}\``,
+              inline: true,
+            },
             { name: t('moderation.moderator'), value: `<@${entry.moderatorId}>`, inline: true },
             { name: t('moderation.date'), value: discordTimestamp(entry.createdAt, 'f'), inline: true },
             { name: t('moderation.reason'), value: truncate(entry.reason, 1024) },
@@ -702,8 +783,23 @@ export const caseCommand: SlashCommand = {
 };
 
 export const moderationCommands: SlashCommand[] = [
-  ban, unban, kick, softban, timeout, untimeout, warn, warnings, clear,
-  slowmode, lock, unlock, nick, role, note, modhistory, caseCommand,
+  ban,
+  unban,
+  kick,
+  softban,
+  timeout,
+  untimeout,
+  warn,
+  warnings,
+  clear,
+  slowmode,
+  lock,
+  unlock,
+  nick,
+  role,
+  note,
+  modhistory,
+  caseCommand,
 ];
 
 export { reasonOption };

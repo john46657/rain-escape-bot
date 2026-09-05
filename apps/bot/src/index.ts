@@ -65,7 +65,10 @@ async function bootstrap(): Promise<void> {
   const guildContext = new GuildContextService(store, cache, permissions, ownerIds());
   const roblox = new RobloxClient({
     apiKey: env.ROBLOX_API_KEY,
-    cache: { getJson: (key) => cache.getJson(key), setJson: (key, value, ttl) => cache.setJson(key, value, ttl) },
+    cache: {
+      getJson: (key) => cache.getJson(key),
+      setJson: (key, value, ttl) => cache.setJson(key, value, ttl),
+    },
   });
 
   const services: Services = {
@@ -110,9 +113,9 @@ async function bootstrap(): Promise<void> {
 
   // ---- Setup-Hooks der Module ----
   for (const module of registry.modules) {
-    await module.setup?.(services).catch((error: unknown) =>
-      log.error('Modul-Setup fehlgeschlagen', error, { module: module.name }),
-    );
+    await module
+      .setup?.(services)
+      .catch((error: unknown) => log.error('Modul-Setup fehlgeschlagen', error, { module: module.name }));
   }
 
   await client.login(env.DISCORD_TOKEN);

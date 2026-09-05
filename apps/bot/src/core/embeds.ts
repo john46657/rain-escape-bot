@@ -14,13 +14,21 @@ export const embeds = {
     return embed;
   },
   success: (description: string, title?: string): EmbedBuilder =>
-    base(BRAND.colors.success).setDescription(`✅ ${description}`).setTitle(title ?? null),
+    base(BRAND.colors.success)
+      .setDescription(`✅ ${description}`)
+      .setTitle(title ?? null),
   warning: (description: string, title?: string): EmbedBuilder =>
-    base(BRAND.colors.warning).setDescription(`⚠️ ${description}`).setTitle(title ?? null),
+    base(BRAND.colors.warning)
+      .setDescription(`⚠️ ${description}`)
+      .setTitle(title ?? null),
   error: (description: string, title?: string): EmbedBuilder =>
-    base(BRAND.colors.danger).setDescription(`⛔ ${description}`).setTitle(title ?? null),
+    base(BRAND.colors.danger)
+      .setDescription(`⛔ ${description}`)
+      .setTitle(title ?? null),
   info: (description: string, title?: string): EmbedBuilder =>
-    base(BRAND.colors.info).setDescription(description).setTitle(title ?? null),
+    base(BRAND.colors.info)
+      .setDescription(description)
+      .setTitle(title ?? null),
   security: (title: string, description: string): EmbedBuilder =>
     base(BRAND.colors.security).setTitle(`🛡️ ${title}`).setDescription(description),
 };

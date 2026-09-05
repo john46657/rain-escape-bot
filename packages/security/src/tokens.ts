@@ -9,7 +9,9 @@ import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } fr
 import { promisify } from 'node:util';
 
 const scrypt = promisify(scryptCallback) as (
-  password: string, salt: string, keylen: number,
+  password: string,
+  salt: string,
+  keylen: number,
 ) => Promise<Buffer>;
 
 export interface GeneratedApiKey {

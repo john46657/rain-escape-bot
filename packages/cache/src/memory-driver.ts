@@ -86,7 +86,11 @@ export class MemoryCacheDriver implements CacheDriver {
     const used = entry ? Number(entry.value) : 0;
     const expiresAt = entry?.expiresAt ?? now + windowMs;
     if (used + cost > limit) {
-      return { allowed: false, remaining: Math.max(0, limit - used), resetAfterMs: Math.max(0, expiresAt - now) };
+      return {
+        allowed: false,
+        remaining: Math.max(0, limit - used),
+        resetAfterMs: Math.max(0, expiresAt - now),
+      };
     }
     this.store.set(key, { value: String(used + cost), expiresAt });
     return { allowed: true, remaining: limit - used - cost, resetAfterMs: Math.max(0, expiresAt - now) };
@@ -111,10 +115,14 @@ export class MemoryCacheDriver implements CacheDriver {
     const set = this.subscribers.get(channel) ?? new Set();
     set.add(handler);
     this.subscribers.set(channel, set);
-    return async () => { set.delete(handler); };
+    return async () => {
+      set.delete(handler);
+    };
   }
 
-  async ping(): Promise<boolean> { return true; }
+  async ping(): Promise<boolean> {
+    return true;
+  }
 
   async close(): Promise<void> {
     clearInterval(this.sweeper);

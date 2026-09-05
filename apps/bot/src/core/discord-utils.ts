@@ -1,6 +1,12 @@
 import {
-  ChannelType, DiscordAPIError, PermissionFlagsBits, type Guild, type GuildMember,
-  type GuildTextBasedChannel, type Message, type User,
+  ChannelType,
+  DiscordAPIError,
+  PermissionFlagsBits,
+  type Guild,
+  type GuildMember,
+  type GuildTextBasedChannel,
+  type Message,
+  type User,
 } from 'discord.js';
 import { LIMITS, NexusError, PreconditionError } from '@nexus/shared';
 
@@ -9,15 +15,23 @@ import { LIMITS, NexusError, PreconditionError } from '@nexus/shared';
  * Beruecksichtigt Rollenhierarchie, Server-Owner und den Bot selbst.
  */
 export function assertModeratable(
-  guild: Guild, moderator: GuildMember, target: GuildMember | null, botMember: GuildMember,
+  guild: Guild,
+  moderator: GuildMember,
+  target: GuildMember | null,
+  botMember: GuildMember,
 ): void {
   if (!target) return; // Nutzer ist nicht (mehr) auf dem Server — z. B. Ban per ID.
-  if (target.id === moderator.id) throw new PreconditionError('Selbstmoderation ist nicht moeglich', { code: 'SELF' });
-  if (target.id === guild.client.user?.id) throw new PreconditionError('Der Bot kann sich nicht selbst moderieren', { code: 'BOT' });
-  if (target.id === guild.ownerId) throw new PreconditionError('Der Server-Owner kann nicht moderiert werden', { code: 'OWNER' });
+  if (target.id === moderator.id)
+    throw new PreconditionError('Selbstmoderation ist nicht moeglich', { code: 'SELF' });
+  if (target.id === guild.client.user?.id)
+    throw new PreconditionError('Der Bot kann sich nicht selbst moderieren', { code: 'BOT' });
+  if (target.id === guild.ownerId)
+    throw new PreconditionError('Der Server-Owner kann nicht moderiert werden', { code: 'OWNER' });
 
   if (moderator.id !== guild.ownerId && target.roles.highest.position >= moderator.roles.highest.position) {
-    throw new PreconditionError('Die Zielperson hat eine gleich hohe oder hoehere Rolle', { code: 'HIERARCHY_USER' });
+    throw new PreconditionError('Die Zielperson hat eine gleich hohe oder hoehere Rolle', {
+      code: 'HIERARCHY_USER',
+    });
   }
   if (target.roles.highest.position >= botMember.roles.highest.position) {
     throw new PreconditionError('Meine Rolle steht nicht ueber der Zielperson', { code: 'HIERARCHY_BOT' });
@@ -57,7 +71,8 @@ export async function tryDirectMessage(user: User, content: Parameters<User['sen
  * Aeltere Nachrichten koennen nicht per Bulk-Delete entfernt werden.
  */
 export async function bulkDelete(
-  channel: GuildTextBasedChannel, messages: Message[],
+  channel: GuildTextBasedChannel,
+  messages: Message[],
 ): Promise<{ deleted: number; skippedTooOld: number }> {
   const cutoff = Date.now() - LIMITS.bulkDeleteMaxAgeDays * 24 * 60 * 60 * 1000;
   const deletable = messages.filter((message) => message.createdTimestamp > cutoff && !message.pinned);
@@ -81,9 +96,12 @@ export async function bulkDelete(
 export function isTextChannel(channel: { type: ChannelType } | null): boolean {
   return (
     channel !== null &&
-    [ChannelType.GuildText, ChannelType.GuildAnnouncement, ChannelType.PublicThread, ChannelType.PrivateThread].includes(
-      channel.type,
-    )
+    [
+      ChannelType.GuildText,
+      ChannelType.GuildAnnouncement,
+      ChannelType.PublicThread,
+      ChannelType.PrivateThread,
+    ].includes(channel.type)
   );
 }
 
@@ -100,8 +118,11 @@ export function wrapDiscordError(error: unknown, action: string): NexusError {
     };
     const message = messages[Number(error.code)] ?? `Discord-Fehler ${error.code}: ${error.message}`;
     return new NexusError(message, {
-      code: 'UPSTREAM_UNAVAILABLE', status: 502, expected: true,
-      meta: { action, discordCode: error.code }, cause: error,
+      code: 'UPSTREAM_UNAVAILABLE',
+      status: 502,
+      expected: true,
+      meta: { action, discordCode: error.code },
+      cause: error,
     });
   }
   return new NexusError(`Aktion "${action}" fehlgeschlagen`, { cause: error });

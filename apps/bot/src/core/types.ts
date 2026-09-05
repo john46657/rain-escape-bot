@@ -1,8 +1,16 @@
 import type {
-  AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, ClientEvents,
-  ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ModalSubmitInteraction,
-  AnySelectMenuInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder,
-  SlashCommandSubcommandsOnlyBuilder, UserContextMenuCommandInteraction,
+  AutocompleteInteraction,
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  ClientEvents,
+  ContextMenuCommandBuilder,
+  MessageContextMenuCommandInteraction,
+  ModalSubmitInteraction,
+  AnySelectMenuInteraction,
+  SlashCommandBuilder,
+  SlashCommandOptionsOnlyBuilder,
+  SlashCommandSubcommandsOnlyBuilder,
+  UserContextMenuCommandInteraction,
 } from 'discord.js';
 import type { PermissionNode } from '@nexus/permissions';
 import type { FeatureKey } from '@nexus/config';
@@ -15,15 +23,36 @@ import type { Services } from './container.js';
 /** Module, deren Aktivierung pro Guild konfigurierbar ist. */
 export type ModuleToggle = keyof Pick<
   GuildConfigEntity,
-  | 'moderationEnabled' | 'automodEnabled' | 'antiNukeEnabled' | 'ticketsEnabled'
-  | 'levelsEnabled' | 'economyEnabled' | 'gamesEnabled' | 'giveawaysEnabled'
-  | 'musicEnabled' | 'aiEnabled' | 'robloxEnabled'
+  | 'moderationEnabled'
+  | 'automodEnabled'
+  | 'antiNukeEnabled'
+  | 'ticketsEnabled'
+  | 'levelsEnabled'
+  | 'economyEnabled'
+  | 'gamesEnabled'
+  | 'giveawaysEnabled'
+  | 'musicEnabled'
+  | 'aiEnabled'
+  | 'robloxEnabled'
 >;
 
 export const COMMAND_CATEGORIES = [
-  'general', 'moderation', 'security', 'tickets', 'community', 'levels',
-  'economy', 'games', 'giveaways', 'music', 'roblox', 'automation', 'analytics',
-  'backup', 'ai', 'admin',
+  'general',
+  'moderation',
+  'security',
+  'tickets',
+  'community',
+  'levels',
+  'economy',
+  'games',
+  'giveaways',
+  'music',
+  'roblox',
+  'automation',
+  'analytics',
+  'backup',
+  'ai',
+  'admin',
 ] as const;
 export type CommandCategory = (typeof COMMAND_CATEGORIES)[number];
 
@@ -50,8 +79,9 @@ export interface AutocompleteContext extends BaseContext {
   interaction: AutocompleteInteraction;
 }
 
-export interface ComponentContext<T = ButtonInteraction | AnySelectMenuInteraction | ModalSubmitInteraction>
-  extends BaseContext {
+export interface ComponentContext<
+  T = ButtonInteraction | AnySelectMenuInteraction | ModalSubmitInteraction,
+> extends BaseContext {
   interaction: T;
   /** Aus der customId extrahierte Argumente (nexus:ns:action:arg1:arg2). */
   args: string[];

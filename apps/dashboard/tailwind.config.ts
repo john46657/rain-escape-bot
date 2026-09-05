@@ -6,7 +6,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        base: { 950: '#07080d', 900: '#0b0d14', 850: '#10131c', 800: '#161a26', 700: '#1f2433', 600: '#2b3244' },
+        base: {
+          950: '#07080d',
+          900: '#0b0d14',
+          850: '#10131c',
+          800: '#161a26',
+          700: '#1f2433',
+          600: '#2b3244',
+        },
         accent: { DEFAULT: '#5865f2', soft: '#7983f5', dim: '#3b45c4' },
         roblox: '#e2231a',
         success: '#3ba55d',
@@ -21,7 +28,10 @@ const config: Config = {
       animation: { 'fade-in': 'fadeIn 200ms ease-out', 'slide-up': 'slideUp 220ms ease-out' },
       keyframes: {
         fadeIn: { from: { opacity: '0' }, to: { opacity: '1' } },
-        slideUp: { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        slideUp: {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
       },
     },
   },

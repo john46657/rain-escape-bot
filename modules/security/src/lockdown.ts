@@ -17,7 +17,12 @@ export interface LockdownResult {
 export class LockdownService {
   constructor(private readonly services: Services) {}
 
-  async enable(guild: Guild, actorId: string, reason: string, channelIds?: string[]): Promise<LockdownResult> {
+  async enable(
+    guild: Guild,
+    actorId: string,
+    reason: string,
+    channelIds?: string[],
+  ): Promise<LockdownResult> {
     const config = await this.services.guildContext.config(guild.id);
     if (config.lockdownActive) throw new PreconditionError('Der Notfallmodus ist bereits aktiv');
 
@@ -29,8 +34,7 @@ export class LockdownService {
     const everyone = guild.roles.everyone;
     const targets = [...guild.channels.cache.values()].filter(
       (channel) =>
-        channel.type === ChannelType.GuildText &&
-        (!channelIds?.length || channelIds.includes(channel.id)),
+        channel.type === ChannelType.GuildText && (!channelIds?.length || channelIds.includes(channel.id)),
     );
 
     const snapshot: Array<{ channelId: string; previousOverwrites: unknown }> = [];
@@ -47,7 +51,11 @@ export class LockdownService {
           : null,
       });
       const updated = await channel.permissionOverwrites
-        .edit(everyone, { SendMessages: false, AddReactions: false, CreatePublicThreads: false }, { reason: `NEXUS Lockdown: ${reason}` })
+        .edit(
+          everyone,
+          { SendMessages: false, AddReactions: false, CreatePublicThreads: false },
+          { reason: `NEXUS Lockdown: ${reason}` },
+        )
         .then(() => true)
         .catch(() => false);
       if (updated) affected++;
@@ -79,8 +87,14 @@ export class LockdownService {
     });
 
     await writeAudit(this.services, {
-      guildId: guild.id, actorId, actorType: 'discord', action: 'security.lockdown.enable',
-      targetId: guild.id, targetType: 'guild', result: 'SUCCESS', reason,
+      guildId: guild.id,
+      actorId,
+      actorType: 'discord',
+      action: 'security.lockdown.enable',
+      targetId: guild.id,
+      targetType: 'guild',
+      result: 'SUCCESS',
+      reason,
       metadata: { affected, skipped },
     });
 
@@ -101,27 +115,33 @@ export class LockdownService {
 
     for (const entry of config.lockdownSnapshot) {
       const channel = await guild.channels.fetch(entry.channelId).catch(() => null);
-      if (!channel || !('permissionOverwrites' in channel)) { skipped++; continue; }
+      if (!channel || !('permissionOverwrites' in channel)) {
+        skipped++;
+        continue;
+      }
 
       const previous = entry.previousOverwrites as { allow: string; deny: string } | null;
-      const restored = await (previous
-        ? channel.permissionOverwrites.set(
-            [
-              ...channel.permissionOverwrites.cache
-                .filter((overwrite) => overwrite.id !== everyone.id)
-                .map((overwrite) => ({
-                  id: overwrite.id, type: overwrite.type,
-                  allow: overwrite.allow, deny: overwrite.deny,
-                })) as OverwriteResolvable[],
-              { id: everyone.id, allow: BigInt(previous.allow), deny: BigInt(previous.deny) },
-            ],
-            `NEXUS Lockdown aufgehoben — ${actorId}`,
-          )
-        : channel.permissionOverwrites.edit(
-            everyone,
-            { SendMessages: null, AddReactions: null, CreatePublicThreads: null },
-            { reason: `NEXUS Lockdown aufgehoben — ${actorId}` },
-          )
+      const restored = await (
+        previous
+          ? channel.permissionOverwrites.set(
+              [
+                ...(channel.permissionOverwrites.cache
+                  .filter((overwrite) => overwrite.id !== everyone.id)
+                  .map((overwrite) => ({
+                    id: overwrite.id,
+                    type: overwrite.type,
+                    allow: overwrite.allow,
+                    deny: overwrite.deny,
+                  })) as OverwriteResolvable[]),
+                { id: everyone.id, allow: BigInt(previous.allow), deny: BigInt(previous.deny) },
+              ],
+              `NEXUS Lockdown aufgehoben — ${actorId}`,
+            )
+          : channel.permissionOverwrites.edit(
+              everyone,
+              { SendMessages: null, AddReactions: null, CreatePublicThreads: null },
+              { reason: `NEXUS Lockdown aufgehoben — ${actorId}` },
+            )
       )
         .then(() => true)
         .catch(() => false);
@@ -140,8 +160,14 @@ export class LockdownService {
     });
 
     await writeAudit(this.services, {
-      guildId: guild.id, actorId, actorType: 'discord', action: 'security.lockdown.disable',
-      targetId: guild.id, targetType: 'guild', result: 'SUCCESS', reason: null,
+      guildId: guild.id,
+      actorId,
+      actorType: 'discord',
+      action: 'security.lockdown.disable',
+      targetId: guild.id,
+      targetType: 'guild',
+      result: 'SUCCESS',
+      reason: null,
       metadata: { affected, skipped },
     });
 

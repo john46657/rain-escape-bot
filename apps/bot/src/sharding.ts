@@ -25,7 +25,9 @@ const manager = new ShardingManager(new URL('./index.ts', import.meta.url).pathn
 
 manager.on('shardCreate', (shard) => {
   log.info('Shard gestartet', { shardId: shard.id });
-  shard.on('death', () => log.error('Shard beendet', new Error('Shard-Prozess beendet'), { shardId: shard.id }));
+  shard.on('death', () =>
+    log.error('Shard beendet', new Error('Shard-Prozess beendet'), { shardId: shard.id }),
+  );
   shard.on('ready', () => log.info('Shard bereit', { shardId: shard.id }));
 });
 

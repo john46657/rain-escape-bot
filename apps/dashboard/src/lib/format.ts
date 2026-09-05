@@ -11,7 +11,10 @@ export function relativeTime(value: string | Date | null | undefined): string {
   if (!value) return '—';
   const diff = Date.now() - new Date(value).getTime();
   const units: Array<[number, Intl.RelativeTimeFormatUnit]> = [
-    [60_000, 'second'], [3_600_000, 'minute'], [86_400_000, 'hour'], [Number.POSITIVE_INFINITY, 'day'],
+    [60_000, 'second'],
+    [3_600_000, 'minute'],
+    [86_400_000, 'hour'],
+    [Number.POSITIVE_INFINITY, 'day'],
   ];
   const divisors = [1_000, 60_000, 3_600_000, 86_400_000];
   const formatter = new Intl.RelativeTimeFormat('de-DE', { numeric: 'auto' });

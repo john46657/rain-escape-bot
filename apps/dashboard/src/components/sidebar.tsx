@@ -3,11 +3,24 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Activity, BarChart3, Bot, Coins, FileClock, Gamepad2, KeyRound, LayoutDashboard,
-  MessageSquare, Settings, Shield, Ticket,
+  Activity,
+  BarChart3,
+  Bot,
+  Coins,
+  FileClock,
+  Gamepad2,
+  KeyRound,
+  LayoutDashboard,
+  MessageSquare,
+  Settings,
+  Shield,
+  Ticket,
 } from 'lucide-react';
 
-const SECTIONS: Array<{ title: string; items: Array<{ href: string; label: string; icon: typeof Activity }> }> = [
+const SECTIONS: Array<{
+  title: string;
+  items: Array<{ href: string; label: string; icon: typeof Activity }>;
+}> = [
   {
     title: 'Uebersicht',
     items: [

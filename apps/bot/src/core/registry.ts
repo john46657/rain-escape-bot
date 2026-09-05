@@ -1,7 +1,12 @@
 import { Collection } from 'discord.js';
 import type { Logger } from '@nexus/logger';
 import type {
-  AnyEventHandler, ComponentHandler, ContextMenuCommand, NexusModule, ScheduledJob, SlashCommand,
+  AnyEventHandler,
+  ComponentHandler,
+  ContextMenuCommand,
+  NexusModule,
+  ScheduledJob,
+  SlashCommand,
 } from './types.js';
 
 /**

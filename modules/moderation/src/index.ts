@@ -16,9 +16,7 @@ const moderationModule: NexusModule = {
     {
       category: 'moderation',
       permission: 'discord.moderation.view',
-      data: new ContextMenuCommandBuilder()
-        .setName('NEXUS: Historie')
-        .setType(ApplicationCommandType.User),
+      data: new ContextMenuCommandBuilder().setName('NEXUS: Historie').setType(ApplicationCommandType.User),
       execute: async ({ interaction, services, t }) => {
         if (!interaction.isUserContextMenuCommand() || !interaction.guildId) return;
         const result = await services.store.moderation.listCases(interaction.guildId, {
@@ -35,7 +33,11 @@ const moderationModule: NexusModule = {
                 )
                 .join('\n\n');
         await interaction.reply({
-          embeds: [embeds.primary(`📚 ${interaction.targetUser.tag}`, description).setFooter({ text: `${result.total} Faelle` })],
+          embeds: [
+            embeds
+              .primary(`📚 ${interaction.targetUser.tag}`, description)
+              .setFooter({ text: `${result.total} Faelle` }),
+          ],
           ephemeral: true,
         });
       },

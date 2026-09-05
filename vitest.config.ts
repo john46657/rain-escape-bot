@@ -8,7 +8,11 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     environment: 'node',
     globals: false,
-    coverage: { provider: 'v8', reporter: ['text', 'lcov'], include: ['packages/**/src/**', 'modules/**/src/**'] },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      include: ['packages/**/src/**', 'modules/**/src/**'],
+    },
   },
   resolve: {
     alias: {

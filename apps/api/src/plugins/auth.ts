@@ -43,7 +43,8 @@ export async function registerAuth(app: FastifyInstance): Promise<void> {
       const token = header.slice('Bearer '.length).trim();
       const key = await store.apiKeys.findByHash(hashApiKey(token));
       if (!key) throw new UnauthorizedError('Ungueltiger API-Key');
-      if (key.expiresAt && key.expiresAt.getTime() < Date.now()) throw new UnauthorizedError('API-Key abgelaufen');
+      if (key.expiresAt && key.expiresAt.getTime() < Date.now())
+        throw new UnauthorizedError('API-Key abgelaufen');
 
       request.auth = {
         kind: 'apiKey',

@@ -6,7 +6,13 @@ export const WEEK = 7 * DAY;
 
 const DURATION_PATTERN = /(\d+)\s*(ms|s|m|h|d|w|y)/gi;
 const UNIT_MS: Record<string, number> = {
-  ms: 1, s: SECOND, m: MINUTE, h: HOUR, d: DAY, w: WEEK, y: 365 * DAY,
+  ms: 1,
+  s: SECOND,
+  m: MINUTE,
+  h: HOUR,
+  d: DAY,
+  w: WEEK,
+  y: 365 * DAY,
 };
 
 /**
@@ -32,12 +38,20 @@ export function parseDuration(input: string): number | null {
 /** Formatiert Millisekunden menschenlesbar (z. B. "2d 3h 10m"). */
 export function formatDuration(ms: number, maxParts = 2): string {
   if (ms < SECOND) return `${Math.max(0, Math.round(ms))}ms`;
-  const units: Array<[string, number]> = [['d', DAY], ['h', HOUR], ['m', MINUTE], ['s', SECOND]];
+  const units: Array<[string, number]> = [
+    ['d', DAY],
+    ['h', HOUR],
+    ['m', MINUTE],
+    ['s', SECOND],
+  ];
   const parts: string[] = [];
   let rest = Math.floor(ms);
   for (const [label, size] of units) {
     const value = Math.floor(rest / size);
-    if (value > 0) { parts.push(`${value}${label}`); rest -= value * size; }
+    if (value > 0) {
+      parts.push(`${value}${label}`);
+      rest -= value * size;
+    }
     if (parts.length >= maxParts) break;
   }
   return parts.join(' ') || '0s';
@@ -46,7 +60,10 @@ export function formatDuration(ms: number, maxParts = 2): string {
 export const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Discord-Timestamp-Markup, z. B. <t:1700000000:R>. */
-export function discordTimestamp(date: Date | number, style: 't' | 'T' | 'd' | 'D' | 'f' | 'F' | 'R' = 'f'): string {
+export function discordTimestamp(
+  date: Date | number,
+  style: 't' | 'T' | 'd' | 'D' | 'f' | 'F' | 'R' = 'f',
+): string {
   const seconds = Math.floor((date instanceof Date ? date.getTime() : date) / 1000);
   return `<t:${seconds}:${style}>`;
 }

@@ -24,7 +24,10 @@ export async function seedDemoData(store: MemoryDataStore): Promise<void> {
 
   for (const user of USERS) {
     await store.users.upsertFromDiscord({
-      discordId: user.id, username: user.name, globalName: user.global, avatar: null,
+      discordId: user.id,
+      username: user.name,
+      globalName: user.global,
+      avatar: null,
     });
   }
 
@@ -46,9 +49,25 @@ export async function seedDemoData(store: MemoryDataStore): Promise<void> {
   // ---- Moderation ----
   const cases = [
     { action: 'WARN' as const, target: '200000000000000005', reason: 'Spam im Chat', ago: 2 * HOUR },
-    { action: 'TIMEOUT' as const, target: '200000000000000005', reason: 'Wiederholter Spam', ago: 90 * MINUTE, duration: 3_600_000 },
-    { action: 'KICK' as const, target: '200000000000000004', reason: 'Werbung fuer fremden Server', ago: 20 * HOUR },
-    { action: 'BAN' as const, target: '200000000000000005', reason: 'Scam-Link verbreitet', ago: 30 * MINUTE },
+    {
+      action: 'TIMEOUT' as const,
+      target: '200000000000000005',
+      reason: 'Wiederholter Spam',
+      ago: 90 * MINUTE,
+      duration: 3_600_000,
+    },
+    {
+      action: 'KICK' as const,
+      target: '200000000000000004',
+      reason: 'Werbung fuer fremden Server',
+      ago: 20 * HOUR,
+    },
+    {
+      action: 'BAN' as const,
+      target: '200000000000000005',
+      reason: 'Scam-Link verbreitet',
+      ago: 30 * MINUTE,
+    },
   ];
   for (const entry of cases) {
     const created = await store.moderation.createCase({

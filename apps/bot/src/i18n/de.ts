@@ -58,7 +58,8 @@ export const de = {
     hierarchyError: 'Ich kann {user} nicht moderieren — die Rollenhierarchie laesst das nicht zu.',
     selfError: 'Du kannst diese Aktion nicht auf dich selbst anwenden.',
     botError: 'Diese Aktion kann nicht auf mich angewendet werden.',
-    higherRole: 'Du kannst {user} nicht moderieren, da die Zielperson eine gleich hohe oder hoehere Rolle hat.',
+    higherRole:
+      'Du kannst {user} nicht moderieren, da die Zielperson eine gleich hohe oder hoehere Rolle hat.',
     notBanned: 'Dieser Nutzer ist nicht gebannt.',
     caseTitle: 'Fall {case}',
     noCases: 'Keine Eintraege vorhanden.',
@@ -87,7 +88,8 @@ export const de = {
     codeTitle: 'Roblox-Verifizierung',
     codeBody:
       'Dein Code lautet:\n# {code}\n\nStarte eines der verbundenen Spiele und gib den Code im NEXUS-Verifizierungsfenster ein.\nDer Code laeuft {expires} ab.',
-    alreadyLinked: 'Dein Discord-Konto ist bereits mit **{username}** verknuepft. Nutze `/unlink`, um die Verknuepfung zu loesen.',
+    alreadyLinked:
+      'Dein Discord-Konto ist bereits mit **{username}** verknuepft. Nutze `/unlink`, um die Verknuepfung zu loesen.',
     notLinked: 'Du hast noch kein Roblox-Konto verknuepft. Nutze `/verify`.',
     unlinked: 'Die Verknuepfung mit **{username}** wurde geloest.',
     linked: 'Verknuepfung erfolgreich: **{username}** (`{id}`)',

@@ -15,7 +15,10 @@ const coinflip: SlashCommand = {
     .setName('coinflip')
     .setDescription('Muenzwurf mit optionalem Einsatz')
     .addStringOption((option) =>
-      option.setName('side').setDescription('Deine Wahl').setRequired(true)
+      option
+        .setName('side')
+        .setDescription('Deine Wahl')
+        .setRequired(true)
         .addChoices({ name: 'Kopf', value: 'heads' }, { name: 'Zahl', value: 'tails' }),
     )
     .addIntegerOption((option) => option.setName('bet').setDescription('Einsatz').setMinValue(1)),
@@ -27,8 +30,13 @@ const coinflip: SlashCommand = {
 
     if (bet > 0) {
       await services.store.economy.mutate({
-        guildId, userId: interaction.user.id, target: 'wallet', amount: -bet,
-        type: 'GAMBLE', reason: 'Einsatz Coinflip', idempotencyKey: `cf:${uuid()}`,
+        guildId,
+        userId: interaction.user.id,
+        target: 'wallet',
+        amount: -bet,
+        type: 'GAMBLE',
+        reason: 'Einsatz Coinflip',
+        idempotencyKey: `cf:${uuid()}`,
       });
     }
 
@@ -36,8 +44,13 @@ const coinflip: SlashCommand = {
     const won = result === side;
     if (won && bet > 0) {
       await services.store.economy.mutate({
-        guildId, userId: interaction.user.id, target: 'wallet', amount: bet * 2,
-        type: 'GAMBLE', reason: 'Gewinn Coinflip', idempotencyKey: `cf:${uuid()}`,
+        guildId,
+        userId: interaction.user.id,
+        target: 'wallet',
+        amount: bet * 2,
+        type: 'GAMBLE',
+        reason: 'Gewinn Coinflip',
+        idempotencyKey: `cf:${uuid()}`,
       });
     }
 
@@ -59,8 +72,12 @@ const dice: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('dice')
     .setDescription('Wuerfelt')
-    .addIntegerOption((option) => option.setName('sides').setDescription('Seiten (Standard 6)').setMinValue(2).setMaxValue(1000))
-    .addIntegerOption((option) => option.setName('count').setDescription('Anzahl (max. 10)').setMinValue(1).setMaxValue(10)),
+    .addIntegerOption((option) =>
+      option.setName('sides').setDescription('Seiten (Standard 6)').setMinValue(2).setMaxValue(1000),
+    )
+    .addIntegerOption((option) =>
+      option.setName('count').setDescription('Anzahl (max. 10)').setMinValue(1).setMaxValue(10),
+    ),
   execute: async ({ interaction }) => {
     const sides = interaction.options.getInteger('sides') ?? 6;
     const count = interaction.options.getInteger('count') ?? 1;
@@ -83,7 +100,9 @@ const slots: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('slots')
     .setDescription('Einarmiger Bandit')
-    .addIntegerOption((option) => option.setName('bet').setDescription('Einsatz').setRequired(true).setMinValue(10)),
+    .addIntegerOption((option) =>
+      option.setName('bet').setDescription('Einsatz').setRequired(true).setMinValue(10),
+    ),
   execute: async ({ interaction, services, config }) => {
     const bet = interaction.options.getInteger('bet', true);
     const guildId = interaction.guildId!;
@@ -91,20 +110,30 @@ const slots: SlashCommand = {
     const payouts: Record<string, number> = { '🍒': 3, '🍋': 4, '🔔': 6, '💎': 10, '7️⃣': 20 };
 
     await services.store.economy.mutate({
-      guildId, userId: interaction.user.id, target: 'wallet', amount: -bet,
-      type: 'GAMBLE', reason: 'Einsatz Slots', idempotencyKey: `slots:${uuid()}`,
+      guildId,
+      userId: interaction.user.id,
+      target: 'wallet',
+      amount: -bet,
+      type: 'GAMBLE',
+      reason: 'Einsatz Slots',
+      idempotencyKey: `slots:${uuid()}`,
     });
 
     const reels = [0, 1, 2].map(() => symbols[randomInt(0, symbols.length - 1)]!);
     const allEqual = reels[0] === reels[1] && reels[1] === reels[2];
     const twoEqual = !allEqual && new Set(reels).size === 2;
-    const multiplier = allEqual ? payouts[reels[0]!] ?? 3 : twoEqual ? 1.5 : 0;
+    const multiplier = allEqual ? (payouts[reels[0]!] ?? 3) : twoEqual ? 1.5 : 0;
     const payout = Math.floor(bet * multiplier);
 
     if (payout > 0) {
       await services.store.economy.mutate({
-        guildId, userId: interaction.user.id, target: 'wallet', amount: payout,
-        type: 'GAMBLE', reason: 'Gewinn Slots', idempotencyKey: `slots:${uuid()}`,
+        guildId,
+        userId: interaction.user.id,
+        target: 'wallet',
+        amount: payout,
+        type: 'GAMBLE',
+        reason: 'Gewinn Slots',
+        idempotencyKey: `slots:${uuid()}`,
       });
     }
 
@@ -127,8 +156,15 @@ const rps: SlashCommand = {
     .setName('rps')
     .setDescription('Schere, Stein, Papier gegen NEXUS')
     .addStringOption((option) =>
-      option.setName('choice').setDescription('Deine Wahl').setRequired(true)
-        .addChoices({ name: 'Stein', value: 'rock' }, { name: 'Papier', value: 'paper' }, { name: 'Schere', value: 'scissors' }),
+      option
+        .setName('choice')
+        .setDescription('Deine Wahl')
+        .setRequired(true)
+        .addChoices(
+          { name: 'Stein', value: 'rock' },
+          { name: 'Papier', value: 'paper' },
+          { name: 'Schere', value: 'scissors' },
+        ),
     ),
   execute: async ({ interaction }) => {
     const choices = ['rock', 'paper', 'scissors'] as const;
@@ -137,9 +173,15 @@ const rps: SlashCommand = {
     const bot = choices[randomInt(0, 2)]!;
     const beats: Record<string, string> = { rock: 'scissors', paper: 'rock', scissors: 'paper' };
 
-    const result = player === bot ? 'Unentschieden!' : beats[player] === bot ? 'Du gewinnst!' : 'NEXUS gewinnt!';
+    const result =
+      player === bot ? 'Unentschieden!' : beats[player] === bot ? 'Du gewinnst!' : 'NEXUS gewinnt!';
     await interaction.reply({
-      embeds: [embeds.primary('Schere, Stein, Papier', `Du: ${labels[player]}\nNEXUS: ${labels[bot]}\n\n**${result}**`)],
+      embeds: [
+        embeds.primary(
+          'Schere, Stein, Papier',
+          `Du: ${labels[player]}\nNEXUS: ${labels[bot]}\n\n**${result}**`,
+        ),
+      ],
     });
   },
 };
@@ -154,12 +196,21 @@ const eightball: SlashCommand = {
     .addStringOption((option) => option.setName('question').setDescription('Deine Frage').setRequired(true)),
   execute: async ({ interaction }) => {
     const answers = [
-      'Ja, ganz sicher.', 'Eher nicht.', 'Frag spaeter nochmal.', 'Absolut!',
-      'Das sieht nicht gut aus.', 'Die Zeichen stehen guenstig.', 'Auf keinen Fall.', 'Vielleicht.',
+      'Ja, ganz sicher.',
+      'Eher nicht.',
+      'Frag spaeter nochmal.',
+      'Absolut!',
+      'Das sieht nicht gut aus.',
+      'Die Zeichen stehen guenstig.',
+      'Auf keinen Fall.',
+      'Vielleicht.',
     ];
     await interaction.reply({
       embeds: [
-        embeds.primary('🎱 Magische Kugel', `**Frage:** ${interaction.options.getString('question', true)}\n**Antwort:** ${answers[randomInt(0, answers.length - 1)]}`),
+        embeds.primary(
+          '🎱 Magische Kugel',
+          `**Frage:** ${interaction.options.getString('question', true)}\n**Antwort:** ${answers[randomInt(0, answers.length - 1)]}`,
+        ),
       ],
     });
   },

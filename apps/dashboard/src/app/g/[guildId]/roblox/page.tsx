@@ -38,7 +38,11 @@ export default async function RobloxPage({ params }: { params: Promise<{ guildId
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Verbundene Spiele" value={games?.length ?? 0} />
-        <StatCard label="Instanzen online" value={online.length} tone={online.length > 0 ? 'success' : 'default'} />
+        <StatCard
+          label="Instanzen online"
+          value={online.length}
+          tone={online.length > 0 ? 'success' : 'default'}
+        />
         <StatCard label="Spieler aktuell" value={players} />
       </div>
 
@@ -50,7 +54,9 @@ export default async function RobloxPage({ params }: { params: Promise<{ guildId
               title={game.name}
               action={
                 <div className="flex items-center gap-2">
-                  <Badge className={game.active ? 'bg-success/15 text-success' : 'bg-base-700 text-slate-400'}>
+                  <Badge
+                    className={game.active ? 'bg-success/15 text-success' : 'bg-base-700 text-slate-400'}
+                  >
                     {game.active ? 'aktiv' : 'inaktiv'}
                   </Badge>
                   <span className="font-mono text-xs text-slate-600">Universe {game.universeId}</span>
@@ -59,8 +65,9 @@ export default async function RobloxPage({ params }: { params: Promise<{ guildId
             >
               <div className="mb-4 flex flex-wrap gap-4 text-xs text-slate-500">
                 <span>
-                  Signing-Secret: <code className="rounded bg-base-800 px-1.5 py-0.5 font-mono">{game.secretHint}…</code>{' '}
-                  (nur Hash gespeichert)
+                  Signing-Secret:{' '}
+                  <code className="rounded bg-base-800 px-1.5 py-0.5 font-mono">{game.secretHint}…</code> (nur
+                  Hash gespeichert)
                 </span>
                 <span>Letztes Event: {relativeTime(game.lastEventAt)}</span>
               </div>
@@ -74,7 +81,13 @@ export default async function RobloxPage({ params }: { params: Promise<{ guildId
                           <Server className="h-3.5 w-3.5" />
                           {server.jobId.slice(0, 14)}
                         </span>
-                        <Badge className={server.status === 'online' ? 'bg-success/15 text-success' : 'bg-base-700 text-slate-400'}>
+                        <Badge
+                          className={
+                            server.status === 'online'
+                              ? 'bg-success/15 text-success'
+                              : 'bg-base-700 text-slate-400'
+                          }
+                        >
                           {server.status}
                         </Badge>
                       </div>
@@ -85,7 +98,9 @@ export default async function RobloxPage({ params }: { params: Promise<{ guildId
                       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-base-800">
                         <div
                           className="h-full rounded-full bg-accent"
-                          style={{ width: `${Math.min(100, (server.playerCount / Math.max(1, server.maxPlayers)) * 100)}%` }}
+                          style={{
+                            width: `${Math.min(100, (server.playerCount / Math.max(1, server.maxPlayers)) * 100)}%`,
+                          }}
                         />
                       </div>
                       <p className="mt-2 text-xs text-slate-600">
@@ -111,19 +126,28 @@ export default async function RobloxPage({ params }: { params: Promise<{ guildId
       <Card title="So verbindest du ein Spiel">
         <ol className="space-y-2 text-sm text-slate-400">
           <li className="flex gap-3">
-            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-base-800 text-[11px]">1</span>
+            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-base-800 text-[11px]">
+              1
+            </span>
             Universe-ID im Dashboard hinterlegen — NEXUS erzeugt ein Signing-Secret (nur einmal sichtbar).
           </li>
           <li className="flex gap-3">
-            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-base-800 text-[11px]">2</span>
+            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-base-800 text-[11px]">
+              2
+            </span>
             <span>
-              <code className="rounded bg-base-800 px-1.5 py-0.5 font-mono text-xs">packages/roblox-sdk/luau</code> in
-              ServerScriptService einbinden und Secret in einem ServerStorage-Wert ablegen.
+              <code className="rounded bg-base-800 px-1.5 py-0.5 font-mono text-xs">
+                packages/roblox-sdk/luau
+              </code>{' '}
+              in ServerScriptService einbinden und Secret in einem ServerStorage-Wert ablegen.
             </span>
           </li>
           <li className="flex gap-3">
-            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-base-800 text-[11px]">3</span>
-            HTTP-Requests in den Spieleinstellungen aktivieren — danach erscheinen Heartbeats hier automatisch.
+            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-base-800 text-[11px]">
+              3
+            </span>
+            HTTP-Requests in den Spieleinstellungen aktivieren — danach erscheinen Heartbeats hier
+            automatisch.
           </li>
         </ol>
         <p className="mt-4 flex items-center gap-2 text-xs text-slate-600">

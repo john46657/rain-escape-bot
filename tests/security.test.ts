@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
-  canonicalString, generateApiKey, hashApiKey, hashSecret, signRequest, signSession,
-  verifyApiKey, verifySecret, verifySession, verifySignature,
+  canonicalString,
+  generateApiKey,
+  hashApiKey,
+  hashSecret,
+  signRequest,
+  signSession,
+  verifyApiKey,
+  verifySecret,
+  verifySession,
+  verifySignature,
 } from '@nexus/security';
 import { capsRatio, extractHosts, isPhishingHost, normalizeForFilter, scamScore } from '@nexus/security';
 
@@ -51,10 +59,16 @@ describe('Request-Signatur', () => {
   it('entspricht dem bekannten HMAC-Testvektor (Kompatibilitaet mit Luau)', () => {
     // Dient als Referenz fuer NexusCrypto.luau: identische Eingabe, identische Ausgabe.
     const signature = signRequest('key', {
-      method: 'GET', path: '/', timestamp: '1', nonce: 'n', body: '',
+      method: 'GET',
+      path: '/',
+      timestamp: '1',
+      nonce: 'n',
+      body: '',
     });
     expect(signature).toMatch(/^[0-9a-f]{64}$/);
-    expect(signature).toBe(signRequest('key', { method: 'get', path: '/', timestamp: '1', nonce: 'n', body: '' }));
+    expect(signature).toBe(
+      signRequest('key', { method: 'get', path: '/', timestamp: '1', nonce: 'n', body: '' }),
+    );
   });
 });
 
@@ -86,7 +100,10 @@ describe('Secrets mit geringer Entropie', () => {
 describe('Sessions', () => {
   it('akzeptiert nur unveraenderte Tokens', () => {
     const token = signSession(SECRET, {
-      userId: 'u1', discordId: 'd1', issuedAt: Date.now(), expiresAt: Date.now() + 60_000,
+      userId: 'u1',
+      discordId: 'd1',
+      issuedAt: Date.now(),
+      expiresAt: Date.now() + 60_000,
     });
     expect(verifySession(SECRET, token)?.discordId).toBe('d1');
     expect(verifySession(SECRET, `${token}x`)).toBeNull();
@@ -95,7 +112,10 @@ describe('Sessions', () => {
 
   it('lehnt abgelaufene Sessions ab', () => {
     const token = signSession(SECRET, {
-      userId: 'u1', discordId: 'd1', issuedAt: Date.now() - 10_000, expiresAt: Date.now() - 1_000,
+      userId: 'u1',
+      discordId: 'd1',
+      issuedAt: Date.now() - 10_000,
+      expiresAt: Date.now() - 1_000,
     });
     expect(verifySession(SECRET, token)).toBeNull();
   });

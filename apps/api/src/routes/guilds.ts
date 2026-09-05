@@ -68,7 +68,8 @@ export async function registerGuildRoutes(app: FastifyInstance): Promise<void> {
       currencySymbol: z.string().min(1).max(8).optional(),
     });
     const parsed = schema.safeParse(request.body);
-    if (!parsed.success) throw new ValidationError('Ungueltige Konfiguration', parsed.error.flatten().fieldErrors);
+    if (!parsed.success)
+      throw new ValidationError('Ungueltige Konfiguration', parsed.error.flatten().fieldErrors);
 
     const config = await store.guilds.updateConfig(guildId, parsed.data);
     await cache.delete(`config:${guildId}`);
@@ -93,7 +94,10 @@ export async function registerGuildRoutes(app: FastifyInstance): Promise<void> {
     assertGuildAccess(auth, guildId, reply);
     const query = pageQuery.extend({ targetId: z.string().optional() }).parse(request.query);
     const result = await store.moderation.listCases(guildId, query);
-    return { data: result.items, meta: { total: result.total, page: result.page, pageSize: result.pageSize } };
+    return {
+      data: result.items,
+      meta: { total: result.total, page: result.page, pageSize: result.pageSize },
+    };
   });
 
   app.get('/api/v1/guilds/:guildId/incidents', async (request, reply) => {

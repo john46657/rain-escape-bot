@@ -1,6 +1,11 @@
 import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import {
-  embeds, requireConfirmation, truncate, writeAudit, type NexusModule, type Services,
+  embeds,
+  requireConfirmation,
+  truncate,
+  writeAudit,
+  type NexusModule,
+  type Services,
   type SlashCommand,
 } from '@nexus/bot-core';
 import { MINUTE, PreconditionError, discordTimestamp, uuid } from '@nexus/shared';
@@ -52,7 +57,9 @@ const verify: SlashCommand = {
                 ? games.map((game) => `• **${game.name}** (Universe \`${game.universeId}\`)`).join('\n')
                 : 'Fuer diesen Server ist noch kein Spiel konfiguriert — frag die Serverleitung.',
           })
-          .setFooter({ text: 'Teile diesen Code mit niemandem. NEXUS fragt nie nach deinem Roblox-Passwort.' }),
+          .setFooter({
+            text: 'Teile diesen Code mit niemandem. NEXUS fragt nie nach deinem Roblox-Passwort.',
+          }),
       ],
     });
   },
@@ -99,7 +106,9 @@ const unlink: SlashCommand = {
       const config = await services.guildContext.config(interaction.guildId);
       const member = await interaction.guild?.members.fetch(interaction.user.id).catch(() => null);
       if (member && config.verifiedRoleId) {
-        await member.roles.remove(config.verifiedRoleId, 'NEXUS: Verknuepfung geloest').catch(() => undefined);
+        await member.roles
+          .remove(config.verifiedRoleId, 'NEXUS: Verknuepfung geloest')
+          .catch(() => undefined);
       }
     }
 
@@ -127,39 +136,53 @@ const roblox: SlashCommand = {
       sub
         .setName('lookup')
         .setDescription('Sucht ein Roblox-Konto')
-        .addStringOption((option) => option.setName('username').setDescription('Roblox-Benutzername').setRequired(true)),
+        .addStringOption((option) =>
+          option.setName('username').setDescription('Roblox-Benutzername').setRequired(true),
+        ),
     )
     .addSubcommand((sub) => sub.setName('servers').setDescription('Zeigt die laufenden Spielserver'))
     .addSubcommand((sub) =>
       sub
         .setName('announce')
         .setDescription('Sendet eine Nachricht in alle laufenden Spielserver')
-        .addStringOption((option) => option.setName('message').setDescription('Nachricht').setRequired(true).setMaxLength(200))
+        .addStringOption((option) =>
+          option.setName('message').setDescription('Nachricht').setRequired(true).setMaxLength(200),
+        )
         .addStringOption((option) => option.setName('game').setDescription('Universe-ID (leer = alle)')),
     )
     .addSubcommand((sub) =>
       sub
         .setName('kick')
         .setDescription('Kickt einen Spieler aus dem Spiel')
-        .addStringOption((option) => option.setName('roblox_user').setDescription('Roblox-Benutzername').setRequired(true))
+        .addStringOption((option) =>
+          option.setName('roblox_user').setDescription('Roblox-Benutzername').setRequired(true),
+        )
         .addStringOption((option) => option.setName('reason').setDescription('Grund').setRequired(true)),
     )
     .addSubcommand((sub) =>
       sub
         .setName('ban')
         .setDescription('Sperrt einen Spieler im Spiel')
-        .addStringOption((option) => option.setName('roblox_user').setDescription('Roblox-Benutzername').setRequired(true))
+        .addStringOption((option) =>
+          option.setName('roblox_user').setDescription('Roblox-Benutzername').setRequired(true),
+        )
         .addStringOption((option) => option.setName('reason').setDescription('Grund').setRequired(true))
-        .addStringOption((option) => option.setName('duration').setDescription('Dauer, z. B. 7d (leer = permanent)')),
+        .addStringOption((option) =>
+          option.setName('duration').setDescription('Dauer, z. B. 7d (leer = permanent)'),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('shutdown')
         .setDescription('Faehrt eine Serverinstanz kontrolliert herunter')
-        .addStringOption((option) => option.setName('job_id').setDescription('JobId der Instanz').setRequired(true))
+        .addStringOption((option) =>
+          option.setName('job_id').setDescription('JobId der Instanz').setRequired(true),
+        )
         .addStringOption((option) => option.setName('reason').setDescription('Grund').setRequired(true)),
     )
-    .addSubcommand((sub) => sub.setName('groupsync').setDescription('Synchronisiert Gruppenraenge mit Discord-Rollen')),
+    .addSubcommand((sub) =>
+      sub.setName('groupsync').setDescription('Synchronisiert Gruppenraenge mit Discord-Rollen'),
+    ),
   execute: async (ctx) => {
     const { interaction, services, t } = ctx;
     const sub = interaction.options.getSubcommand();
@@ -181,20 +204,29 @@ const roblox: SlashCommand = {
         await interaction.editReply({
           embeds: [
             embeds
-              .primary(t('verification.profileTitle'), `**${account.username}** (\`${account.robloxUserId}\`)`)
+              .primary(
+                t('verification.profileTitle'),
+                `**${account.username}** (\`${account.robloxUserId}\`)`,
+              )
               .setThumbnail(account.avatarUrl)
               .setURL(`https://www.roblox.com/users/${account.robloxUserId}/profile`)
               .addFields(
                 { name: 'Discord', value: `<@${user.id}>`, inline: true },
                 { name: 'Verifiziert', value: discordTimestamp(account.verifiedAt, 'R'), inline: true },
-                { name: 'Anzeigename', value: profile?.displayName ?? account.displayName ?? '—', inline: true },
+                {
+                  name: 'Anzeigename',
+                  value: profile?.displayName ?? account.displayName ?? '—',
+                  inline: true,
+                },
                 {
                   name: `Gruppen (${groups.length})`,
                   value:
                     truncate(
                       groups
                         .slice(0, 8)
-                        .map((entry) => `• ${entry.group.name} — ${entry.role.name} (Rang ${entry.role.rank})`)
+                        .map(
+                          (entry) => `• ${entry.group.name} — ${entry.role.name} (Rang ${entry.role.rank})`,
+                        )
                         .join('\n'),
                       1024,
                     ) || '—',
@@ -224,7 +256,11 @@ const roblox: SlashCommand = {
               .addFields(
                 { name: 'Roblox-ID', value: `\`${profile.id}\``, inline: true },
                 { name: 'Anzeigename', value: profile.displayName, inline: true },
-                { name: 'Discord', value: linked ? `<@${linked.discordId}>` : 'nicht verknuepft', inline: true },
+                {
+                  name: 'Discord',
+                  value: linked ? `<@${linked.discordId}>` : 'nicht verknuepft',
+                  inline: true,
+                },
               ),
           ],
         });
@@ -288,7 +324,8 @@ const roblox: SlashCommand = {
         const profile = await services.roblox.getUserByUsername(username);
         if (!profile) throw new PreconditionError(t('roblox.playerNotFound'));
         const count = await queueForGames(ctx, guildId, null, 'KICK_PLAYER', {
-          robloxUserId: String(profile.id), reason,
+          robloxUserId: String(profile.id),
+          reason,
         });
         await interaction.editReply({
           embeds: [embeds.success(`Kick fuer **${profile.name}** an ${count} Instanz(en) uebermittelt.`)],
@@ -315,7 +352,9 @@ const roblox: SlashCommand = {
         if (!confirmed) return;
 
         const count = await queueForGames(ctx, guildId, null, 'BAN_PLAYER', {
-          robloxUserId: String(profile.id), reason, duration: duration ?? null,
+          robloxUserId: String(profile.id),
+          reason,
+          duration: duration ?? null,
         });
         await interaction.editReply({
           embeds: [embeds.success(`Bann fuer **${profile.name}** an ${count} Instanz(en) uebermittelt.`)],
@@ -332,8 +371,7 @@ const roblox: SlashCommand = {
 
         const confirmed = await requireConfirmation(interaction, {
           title: '⚠️ Serverinstanz herunterfahren',
-          description:
-            `Instanz \`${jobId}\` wird beendet. Alle Spieler werden getrennt.\n**Grund:** ${reason}`,
+          description: `Instanz \`${jobId}\` wird beendet. Alle Spieler werden getrennt.\n**Grund:** ${reason}`,
           confirmLabel: 'Herunterfahren',
           cancelLabel: t('common.cancel'),
         });
@@ -362,11 +400,19 @@ const roblox: SlashCommand = {
         }
 
         await writeAudit(services, {
-          guildId, actorId: interaction.user.id, actorType: 'discord',
-          action: 'roblox.group.sync', targetId: guildId, targetType: 'guild',
-          result: 'SUCCESS', reason: null, metadata: { updated },
+          guildId,
+          actorId: interaction.user.id,
+          actorType: 'discord',
+          action: 'roblox.group.sync',
+          targetId: guildId,
+          targetType: 'guild',
+          result: 'SUCCESS',
+          reason: null,
+          metadata: { updated },
         });
-        await interaction.editReply({ embeds: [embeds.success(t('roblox.groupSynced', { count: updated }))] });
+        await interaction.editReply({
+          embeds: [embeds.success(t('roblox.groupSynced', { count: updated }))],
+        });
       }
     }
   },
@@ -411,15 +457,22 @@ async function queueForGames(
         .publishMessage(game.universeId, 'nexus:commands', { commandId: command.id, type, payload })
         .catch((error: unknown) =>
           services.log.warn('MessagingService-Push fehlgeschlagen — Fallback auf Polling', {
-            gameId: game.id, error: String(error),
+            gameId: game.id,
+            error: String(error),
           }),
         );
     }
 
     await writeAudit(services, {
-      guildId, actorId: ctx.interaction.user.id, actorType: 'discord',
-      action: `roblox.command.${type.toLowerCase()}`, targetId: game.id, targetType: 'roblox_game',
-      result: 'SUCCESS', reason: String(payload['reason'] ?? ''), metadata: { commandId: command.id, jobId },
+      guildId,
+      actorId: ctx.interaction.user.id,
+      actorType: 'discord',
+      action: `roblox.command.${type.toLowerCase()}`,
+      targetId: game.id,
+      targetType: 'roblox_game',
+      result: 'SUCCESS',
+      reason: String(payload['reason'] ?? ''),
+      metadata: { commandId: command.id, jobId },
     });
   }
   return queued;
@@ -438,7 +491,9 @@ const robloxAdmin: SlashCommand = {
       sub
         .setName('link')
         .setDescription('Verbindet ein Roblox-Universum (Secret wird per DM gesendet)')
-        .addStringOption((option) => option.setName('universe_id').setDescription('Universe-ID').setRequired(true))
+        .addStringOption((option) =>
+          option.setName('universe_id').setDescription('Universe-ID').setRequired(true),
+        )
         .addStringOption((option) => option.setName('name').setDescription('Anzeigename').setRequired(true)),
     ),
   execute: async ({ interaction, services }) => {

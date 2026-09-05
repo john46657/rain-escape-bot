@@ -1,25 +1,25 @@
 # Module
 
 Jedes Modul liegt unter `modules/<name>` und exportiert ein `NexusModule`.
-Die Spalte *Reife* unterscheidet vollstaendig ausgearbeitete Module von
+Die Spalte _Reife_ unterscheidet vollstaendig ausgearbeitete Module von
 Geruesten, die einen externen Dienst benoetigen.
 
-| Modul | Reife | Befehle |
-| --- | --- | --- |
-| moderation | vollstaendig | `/ban` `/unban` `/kick` `/softban` `/timeout` `/untimeout` `/warn` `/warnings` `/clear` `/slowmode` `/lock` `/unlock` `/nick` `/role` `/note` `/modhistory` `/case` |
-| security | vollstaendig | `/security lockdown\|unlock\|incidents\|resolve\|status\|whitelist` |
-| tickets | vollstaendig | `/ticket open\|close\|add\|panel\|list` |
-| community | vollstaendig | `/suggest` `/poll` `/afk` |
-| levels | vollstaendig | `/rank` `/leaderboard` `/xp add\|remove\|setlevel` |
-| economy | vollstaendig | `/balance` `/daily` `/work` `/pay` `/deposit` `/withdraw` `/shop` `/inventory` `/richest` `/eco` |
-| roblox | vollstaendig | `/verify` `/unlink` `/roblox profile\|lookup\|servers\|announce\|kick\|ban\|shutdown\|groupsync` `/robloxgame` |
-| games | vollstaendig | `/coinflip` `/dice` `/slots` `/rps` `/8ball` |
-| giveaways | vollstaendig | `/giveaway create\|end\|reroll\|list` |
-| backup | vollstaendig | `/backup create\|list\|restore\|delete` |
-| analytics | vollstaendig | `/analytics` |
-| automation | Engine vollstaendig, Regeln im Dashboard | `/automation list\|toggle` |
-| ai | optional (API-Key noetig) | `/ask` |
-| music | Geruest (Lavalink noetig) | `/music play\|skip\|stop\|queue\|status` |
+| Modul      | Reife                                    | Befehle                                                                                                                                                             |
+| ---------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| moderation | vollstaendig                             | `/ban` `/unban` `/kick` `/softban` `/timeout` `/untimeout` `/warn` `/warnings` `/clear` `/slowmode` `/lock` `/unlock` `/nick` `/role` `/note` `/modhistory` `/case` |
+| security   | vollstaendig                             | `/security lockdown\|unlock\|incidents\|resolve\|status\|whitelist`                                                                                                 |
+| tickets    | vollstaendig                             | `/ticket open\|close\|add\|panel\|list`                                                                                                                             |
+| community  | vollstaendig                             | `/suggest` `/poll` `/afk`                                                                                                                                           |
+| levels     | vollstaendig                             | `/rank` `/leaderboard` `/xp add\|remove\|setlevel`                                                                                                                  |
+| economy    | vollstaendig                             | `/balance` `/daily` `/work` `/pay` `/deposit` `/withdraw` `/shop` `/inventory` `/richest` `/eco`                                                                    |
+| roblox     | vollstaendig                             | `/verify` `/unlink` `/roblox profile\|lookup\|servers\|announce\|kick\|ban\|shutdown\|groupsync` `/robloxgame`                                                      |
+| games      | vollstaendig                             | `/coinflip` `/dice` `/slots` `/rps` `/8ball`                                                                                                                        |
+| giveaways  | vollstaendig                             | `/giveaway create\|end\|reroll\|list`                                                                                                                               |
+| backup     | vollstaendig                             | `/backup create\|list\|restore\|delete`                                                                                                                             |
+| analytics  | vollstaendig                             | `/analytics`                                                                                                                                                        |
+| automation | Engine vollstaendig, Regeln im Dashboard | `/automation list\|toggle`                                                                                                                                          |
+| ai         | optional (API-Key noetig)                | `/ask`                                                                                                                                                              |
+| music      | Geruest (Lavalink noetig)                | `/music play\|skip\|stop\|queue\|status`                                                                                                                            |
 
 ## Moderation
 
@@ -71,8 +71,8 @@ Regel = Trigger + Bedingungen + Aktionen.
   "conditions": [{ "field": "accountAgeDays", "operator": "lt", "value": 7 }],
   "actions": [
     { "type": "discord.role.add", "params": { "roleId": "…" } },
-    { "type": "notification.send", "params": { "title": "Junges Konto" } }
-  ]
+    { "type": "notification.send", "params": { "title": "Junges Konto" } },
+  ],
 }
 ```
 

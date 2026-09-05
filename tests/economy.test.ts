@@ -14,14 +14,24 @@ describe('Wirtschaft', () => {
   beforeEach(async () => {
     store = new MemoryDataStore();
     await store.economy.mutate({
-      guildId, userId: 'u1', target: 'wallet', amount: 1_000,
-      type: 'ADMIN_ADJUST', reason: 'Start', idempotencyKey: 'start:u1',
+      guildId,
+      userId: 'u1',
+      target: 'wallet',
+      amount: 1_000,
+      type: 'ADMIN_ADJUST',
+      reason: 'Start',
+      idempotencyKey: 'start:u1',
     });
   });
 
   it('bucht Betraege und protokolliert die Transaktion', async () => {
     const result = await store.economy.mutate({
-      guildId, userId: 'u1', target: 'wallet', amount: 250, type: 'WORK', reason: 'Arbeit',
+      guildId,
+      userId: 'u1',
+      target: 'wallet',
+      amount: 250,
+      type: 'WORK',
+      reason: 'Arbeit',
     });
     expect(result.profile.wallet).toBe(1_250);
     expect(result.transaction?.amount).toBe(250);
@@ -37,16 +47,37 @@ describe('Wirtschaft', () => {
 
   it('bucht denselben Idempotenzschluessel nur einmal', async () => {
     const key = 'daily:2026-01-01:u1';
-    await store.economy.mutate({ guildId, userId: 'u1', target: 'wallet', amount: 500, type: 'DAILY', idempotencyKey: key });
-    await store.economy.mutate({ guildId, userId: 'u1', target: 'wallet', amount: 500, type: 'DAILY', idempotencyKey: key });
+    await store.economy.mutate({
+      guildId,
+      userId: 'u1',
+      target: 'wallet',
+      amount: 500,
+      type: 'DAILY',
+      idempotencyKey: key,
+    });
+    await store.economy.mutate({
+      guildId,
+      userId: 'u1',
+      target: 'wallet',
+      amount: 500,
+      type: 'DAILY',
+      idempotencyKey: key,
+    });
     const profile = await store.economy.getProfile(guildId, 'u1');
     expect(profile.wallet).toBe(1_500);
   });
 
   it('haelt die Summe bei Transfers konstant', async () => {
-    await store.economy.mutate({ guildId, userId: 'u2', target: 'wallet', amount: 300, type: 'ADMIN_ADJUST' });
+    await store.economy.mutate({
+      guildId,
+      userId: 'u2',
+      target: 'wallet',
+      amount: 300,
+      type: 'ADMIN_ADJUST',
+    });
     const before =
-      (await store.economy.getProfile(guildId, 'u1')).wallet + (await store.economy.getProfile(guildId, 'u2')).wallet;
+      (await store.economy.getProfile(guildId, 'u1')).wallet +
+      (await store.economy.getProfile(guildId, 'u2')).wallet;
 
     await store.economy.transfer({ guildId, fromUserId: 'u1', toUserId: 'u2', amount: 400 });
 
@@ -65,8 +96,12 @@ describe('Wirtschaft', () => {
   });
 
   it('lehnt Selbsttransfer und nicht positive Betraege ab', async () => {
-    await expect(store.economy.transfer({ guildId, fromUserId: 'u1', toUserId: 'u1', amount: 10 })).rejects.toThrow();
-    await expect(store.economy.transfer({ guildId, fromUserId: 'u1', toUserId: 'u2', amount: 0 })).rejects.toThrow();
+    await expect(
+      store.economy.transfer({ guildId, fromUserId: 'u1', toUserId: 'u1', amount: 10 }),
+    ).rejects.toThrow();
+    await expect(
+      store.economy.transfer({ guildId, fromUserId: 'u1', toUserId: 'u2', amount: 0 }),
+    ).rejects.toThrow();
   });
 
   it('verliert bei parallelen Buchungen nichts', async () => {
@@ -75,8 +110,12 @@ describe('Wirtschaft', () => {
     await Promise.all(
       Array.from({ length: 20 }, (_unused, index) =>
         store.economy.mutate({
-          guildId, userId: 'u1', target: 'wallet', amount: 10,
-          type: 'REWARD', idempotencyKey: `parallel:${index}`,
+          guildId,
+          userId: 'u1',
+          target: 'wallet',
+          amount: 10,
+          type: 'REWARD',
+          idempotencyKey: `parallel:${index}`,
         }),
       ),
     );
@@ -94,8 +133,13 @@ describe('Belohnungen (plattformuebergreifend)', () => {
   it('vergibt jede Belohnung nur einmal', async () => {
     const store = new MemoryDataStore();
     const input = {
-      userId: 'u1', guildId: 'g1', idempotencyKey: 'quest:1:u1',
-      kind: 'discord_coins' as const, amount: 100, reference: 'quest-1', source: 'roblox:1',
+      userId: 'u1',
+      guildId: 'g1',
+      idempotencyKey: 'quest:1:u1',
+      kind: 'discord_coins' as const,
+      amount: 100,
+      reference: 'quest-1',
+      source: 'roblox:1',
     };
     const first = await store.rewards.grant(input);
     const second = await store.rewards.grant(input);

@@ -2,13 +2,13 @@
 
 ## Voraussetzungen
 
-1. **HTTP-Anfragen aktivieren**: Roblox Studio → *Game Settings* → *Security* →
-   *Allow HTTP Requests*. Ohne diese Einstellung kann das Spiel NEXUS nicht erreichen.
+1. **HTTP-Anfragen aktivieren**: Roblox Studio → _Game Settings_ → _Security_ →
+   _Allow HTTP Requests_. Ohne diese Einstellung kann das Spiel NEXUS nicht erreichen.
 2. **Erreichbare API**: `API_PUBLIC_URL` muss aus dem Internet aufrufbar sein
    (HTTPS). Fuer lokale Tests eignet sich ein Tunnel.
 3. **Universe-ID**: zu finden unter [create.roblox.com](https://create.roblox.com)
    in den Einstellungen der Erfahrung.
-4. *(optional)* **Open-Cloud-API-Key** mit der Berechtigung
+4. _(optional)_ **Open-Cloud-API-Key** mit der Berechtigung
    `universe-messaging-service:publish` — beschleunigt Kommandos von ~5 Sekunden
    Polling auf nahezu sofort. Ohne Key funktioniert alles ueber Polling.
 
@@ -50,13 +50,13 @@ als ein lauter.
 
 ## Was das SDK tut
 
-| Aufgabe | Intervall | Endpunkt |
-| --- | --- | --- |
-| Handshake und Zeitabgleich | beim Start | `POST /api/v1/roblox/handshake` |
-| Heartbeat (Spieler, FPS, Speicher) | 30 s | `POST /api/v1/roblox/heartbeat` |
-| Ereignisse (gebuendelt, max. 50) | 5 s | `POST /api/v1/roblox/events` |
-| Kommandos abholen | 5 s | `POST /api/v1/roblox/commands` |
-| Kommando bestaetigen | sofort | `POST /api/v1/roblox/commands/ack` |
+| Aufgabe                            | Intervall  | Endpunkt                           |
+| ---------------------------------- | ---------- | ---------------------------------- |
+| Handshake und Zeitabgleich         | beim Start | `POST /api/v1/roblox/handshake`    |
+| Heartbeat (Spieler, FPS, Speicher) | 30 s       | `POST /api/v1/roblox/heartbeat`    |
+| Ereignisse (gebuendelt, max. 50)   | 5 s        | `POST /api/v1/roblox/events`       |
+| Kommandos abholen                  | 5 s        | `POST /api/v1/roblox/commands`     |
+| Kommando bestaetigen               | sofort     | `POST /api/v1/roblox/commands/ack` |
 
 Der Zeitabgleich aus dem Handshake verhindert Ablehnungen wegen `clock_skew`,
 falls die Uhr der Roblox-Instanz abweicht.
@@ -131,11 +131,11 @@ unberuehrt.
 
 ## Fehlersuche
 
-| Symptom | Ursache | Loesung |
-| --- | --- | --- |
-| `signature_invalid` | Secret stimmt nicht oder Pfad weicht ab | Secret pruefen; `baseUrl` ohne abschliessenden Schraegstrich |
-| `clock_skew` | Zeitabweichung > 300 s | Handshake muss erfolgreich sein; ggf. Fenster erhoehen |
-| `replay_detected` | Nonce doppelt verwendet | Tritt nur bei manipuliertem SDK auf |
-| `unknown_game` | Universe-ID nicht hinterlegt oder Spiel inaktiv | Dashboard pruefen |
-| `rate_limited` | zu viele Anfragen | Intervalle beibehalten, Ereignisse buendeln |
-| Keine HTTP-Verbindung | HTTP-Anfragen deaktiviert | Game Settings → Security |
+| Symptom               | Ursache                                         | Loesung                                                      |
+| --------------------- | ----------------------------------------------- | ------------------------------------------------------------ |
+| `signature_invalid`   | Secret stimmt nicht oder Pfad weicht ab         | Secret pruefen; `baseUrl` ohne abschliessenden Schraegstrich |
+| `clock_skew`          | Zeitabweichung > 300 s                          | Handshake muss erfolgreich sein; ggf. Fenster erhoehen       |
+| `replay_detected`     | Nonce doppelt verwendet                         | Tritt nur bei manipuliertem SDK auf                          |
+| `unknown_game`        | Universe-ID nicht hinterlegt oder Spiel inaktiv | Dashboard pruefen                                            |
+| `rate_limited`        | zu viele Anfragen                               | Intervalle beibehalten, Ereignisse buendeln                  |
+| Keine HTTP-Verbindung | HTTP-Anfragen deaktiviert                       | Game Settings → Security                                     |

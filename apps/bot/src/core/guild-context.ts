@@ -1,6 +1,11 @@
 import type { CacheService } from '@nexus/cache';
 import type { DataStore, GuildConfigEntity } from '@nexus/database';
-import type { PermissionGrant, PermissionNode, PermissionService, PermissionSubject } from '@nexus/permissions';
+import type {
+  PermissionGrant,
+  PermissionNode,
+  PermissionService,
+  PermissionSubject,
+} from '@nexus/permissions';
 import { ForbiddenError, MINUTE, type Locale, type PremiumTier } from '@nexus/shared';
 
 /**
@@ -78,7 +83,9 @@ export class GuildContextService {
   async assert(subject: PermissionSubject, node: PermissionNode): Promise<void> {
     if (!(await this.can(subject, node))) {
       throw new ForbiddenError(`Fehlende Berechtigung: ${node}`, {
-        node, userId: subject.userId, guildId: subject.guildId,
+        node,
+        userId: subject.userId,
+        guildId: subject.guildId,
       });
     }
   }

@@ -10,8 +10,17 @@
  *   - JSON-Text-Spalten aus dem Schema werden hier bereits typisiert.
  */
 import type {
-  AchievementRarity, AutomodAction, AutomodRule, IncidentSeverity, IncidentStatus,
-  Locale, ModerationAction, PremiumTier, TicketCategory, TicketStatus, TransactionType,
+  AchievementRarity,
+  AutomodAction,
+  AutomodRule,
+  IncidentSeverity,
+  IncidentStatus,
+  Locale,
+  ModerationAction,
+  PremiumTier,
+  TicketCategory,
+  TicketStatus,
+  TransactionType,
   VerificationStatus,
 } from '@nexus/shared';
 
@@ -479,7 +488,13 @@ export interface PromoCodeEntity {
   id: string;
   guildId: string;
   code: string;
-  reward: { coins?: number; xp?: number; roleId?: string; itemKey?: string; robloxReward?: { key: string; amount: number } };
+  reward: {
+    coins?: number;
+    xp?: number;
+    roleId?: string;
+    itemKey?: string;
+    robloxReward?: { key: string; amount: number };
+  };
   maxUses: number;
   uses: number;
   perUserLimit: number;
@@ -493,17 +508,24 @@ export interface PromoCodeEntity {
 export interface AutomationCondition {
   field: string;
   operator:
-    | 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte'
-    | 'contains' | 'startsWith' | 'regex' | 'in' | 'exists';
+    'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'contains' | 'startsWith' | 'regex' | 'in' | 'exists';
   value: unknown;
 }
 
 export interface AutomationAction {
   type:
-    | 'discord.role.add' | 'discord.role.remove' | 'discord.message.send' | 'discord.dm.send'
-    | 'discord.xp.add' | 'discord.coins.add' | 'discord.timeout'
-    | 'roblox.reward.grant' | 'roblox.announce' | 'roblox.kick'
-    | 'notification.send' | 'webhook.call';
+    | 'discord.role.add'
+    | 'discord.role.remove'
+    | 'discord.message.send'
+    | 'discord.dm.send'
+    | 'discord.xp.add'
+    | 'discord.coins.add'
+    | 'discord.timeout'
+    | 'roblox.reward.grant'
+    | 'roblox.announce'
+    | 'roblox.kick'
+    | 'notification.send'
+    | 'webhook.call';
   params: Record<string, unknown>;
   delayMs?: number;
 }

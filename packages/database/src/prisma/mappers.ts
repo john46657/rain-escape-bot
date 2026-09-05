@@ -2,13 +2,36 @@
 import { parseJson } from '../json.js';
 import { DEFAULT_ANTINUKE, DEFAULT_AUTOMOD, defaultGuildConfig } from '../defaults.js';
 import type {
-  AchievementEntity, AnalyticsSnapshotEntity, ApiKeyEntity, AuditLogEntity, AutomationEntity,
-  BackupEntity, EconomyProfileEntity, GiveawayEntity, GuildConfigEntity, GuildEntity,
-  ItemEntity, ModerationCaseEntity, NotificationEntity, PermissionGrantEntity, PromoCodeEntity,
-  RewardGrantEntity, RobloxAccountEntity, RobloxCommandEntity, RobloxEventEntity,
-  RobloxGameEntity, RobloxGroupEntity, RobloxServerEntity, SecurityIncidentEntity,
-  TicketEntity, TicketMessageEntity, TransactionEntity, UserEntity, VerificationEntity,
-  WarningEntity, XPProfileEntity,
+  AchievementEntity,
+  AnalyticsSnapshotEntity,
+  ApiKeyEntity,
+  AuditLogEntity,
+  AutomationEntity,
+  BackupEntity,
+  EconomyProfileEntity,
+  GiveawayEntity,
+  GuildConfigEntity,
+  GuildEntity,
+  ItemEntity,
+  ModerationCaseEntity,
+  NotificationEntity,
+  PermissionGrantEntity,
+  PromoCodeEntity,
+  RewardGrantEntity,
+  RobloxAccountEntity,
+  RobloxCommandEntity,
+  RobloxEventEntity,
+  RobloxGameEntity,
+  RobloxGroupEntity,
+  RobloxServerEntity,
+  SecurityIncidentEntity,
+  TicketEntity,
+  TicketMessageEntity,
+  TransactionEntity,
+  UserEntity,
+  VerificationEntity,
+  WarningEntity,
+  XPProfileEntity,
 } from '../entities.js';
 import type { Row } from './client-contract.js';
 
@@ -22,7 +45,8 @@ const numOrNull = (row: Row, key: string): number | null => (row[key] == null ? 
 const bool = (row: Row, key: string, fallback = false): boolean =>
   typeof row[key] === 'boolean' ? (row[key] as boolean) : fallback;
 const date = (row: Row, key: string): Date => new Date(row[key] as string | number | Date);
-const dateOrNull = (row: Row, key: string): Date | null => (row[key] == null ? null : new Date(row[key] as string));
+const dateOrNull = (row: Row, key: string): Date | null =>
+  row[key] == null ? null : new Date(row[key] as string);
 const json = <T>(row: Row, key: string, fallback: T): T => parseJson<T>(row[key] as string | null, fallback);
 
 export const toUser = (row: Row): UserEntity => ({
@@ -31,7 +55,7 @@ export const toUser = (row: Row): UserEntity => ({
   username: str(row, 'username'),
   globalName: strOrNull(row, 'globalName'),
   avatar: strOrNull(row, 'avatar'),
-  locale: (str(row, 'locale') === 'en' ? 'en' : 'de'),
+  locale: str(row, 'locale') === 'en' ? 'en' : 'de',
   isBotOwner: bool(row, 'isBotOwner'),
   blacklisted: bool(row, 'blacklisted'),
   createdAt: date(row, 'createdAt'),
@@ -49,7 +73,7 @@ export const toGuild = (row: Row): GuildEntity => ({
     ? str(row, 'premiumTier')
     : 'FREE') as GuildEntity['premiumTier'],
   premiumUntil: dateOrNull(row, 'premiumUntil'),
-  locale: (str(row, 'locale') === 'en' ? 'en' : 'de'),
+  locale: str(row, 'locale') === 'en' ? 'en' : 'de',
   active: bool(row, 'active', true),
   joinedAt: date(row, 'joinedAt'),
 });

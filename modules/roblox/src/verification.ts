@@ -48,7 +48,8 @@ export class VerificationService {
     const existing = await this.services.store.roblox.getAccountByDiscordId(discordId);
     if (existing) {
       throw new ConflictError(`Bereits verknuepft mit ${existing.username}`, {
-        username: existing.username, robloxUserId: existing.robloxUserId,
+        username: existing.username,
+        robloxUserId: existing.robloxUserId,
       });
     }
 
@@ -71,7 +72,10 @@ export class VerificationService {
       expiresAt,
     });
 
-    this.services.log.info('Verifizierungscode erstellt', { userId: discordId, guildId: guildId ?? undefined });
+    this.services.log.info('Verifizierungscode erstellt', {
+      userId: discordId,
+      guildId: guildId ?? undefined,
+    });
     return { code, expiresAt };
   }
 
@@ -79,7 +83,12 @@ export class VerificationService {
    * Prueft einen Code (wird von der API aufgerufen, nicht vom Bot).
    * Gibt bei Erfolg die verknuepfte Discord-ID zurueck.
    */
-  async redeem(code: string, robloxUserId: string, robloxUsername: string, displayName?: string): Promise<{
+  async redeem(
+    code: string,
+    robloxUserId: string,
+    robloxUsername: string,
+    displayName?: string,
+  ): Promise<{
     discordId: string;
     account: RobloxAccountEntity;
   }> {
@@ -93,7 +102,9 @@ export class VerificationService {
 
       const existing = await this.services.store.roblox.getAccountByRobloxId(robloxUserId);
       if (existing && existing.discordId !== candidate.discordId) {
-        throw new ConflictError('Dieser Roblox-Account ist bereits mit einem anderen Discord-Konto verknuepft');
+        throw new ConflictError(
+          'Dieser Roblox-Account ist bereits mit einem anderen Discord-Konto verknuepft',
+        );
       }
 
       const account = await this.services.store.roblox.linkAccount({
@@ -108,7 +119,9 @@ export class VerificationService {
       await this.services.store.verification.markVerified(candidate.id, robloxUserId);
 
       this.services.log.security('Roblox-Konto verifiziert', {
-        userId: candidate.discordId, robloxUserId, guildId: candidate.guildId ?? undefined,
+        userId: candidate.discordId,
+        robloxUserId,
+        guildId: candidate.guildId ?? undefined,
       });
       await writeAudit(this.services, {
         guildId: candidate.guildId,
@@ -129,7 +142,9 @@ export class VerificationService {
       }
 
       await this.services.publish('roblox.verified', {
-        discordId: candidate.discordId, robloxUserId, username: robloxUsername,
+        discordId: candidate.discordId,
+        robloxUserId,
+        username: robloxUsername,
       });
 
       return { discordId: candidate.discordId, account };

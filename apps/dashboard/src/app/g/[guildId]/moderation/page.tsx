@@ -35,7 +35,9 @@ export default async function ModerationPage({ params }: { params: Promise<{ gui
               <tr key={entry.id} className="transition hover:bg-base-850/60">
                 <td className="table-cell font-mono text-xs text-slate-400">{entry.caseId}</td>
                 <td className="table-cell">
-                  <Badge className={ACTION_STYLES[entry.action] ?? 'bg-base-700 text-slate-300'}>{entry.action}</Badge>
+                  <Badge className={ACTION_STYLES[entry.action] ?? 'bg-base-700 text-slate-300'}>
+                    {entry.action}
+                  </Badge>
                 </td>
                 <td className="table-cell text-slate-300">{entry.targetTag ?? entry.targetId}</td>
                 <td className="table-cell max-w-xs truncate text-slate-400">{entry.reason}</td>

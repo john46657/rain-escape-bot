@@ -17,8 +17,13 @@ export interface RetryOptions {
 /** Fuehrt eine Operation mit exponentiellem Backoff und Jitter aus. */
 export async function retry<T>(operation: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
   const {
-    attempts = 3, baseDelayMs = 250, maxDelayMs = 10_000, jitter = 0.2,
-    retryOn = () => true, onRetry, signal,
+    attempts = 3,
+    baseDelayMs = 250,
+    maxDelayMs = 10_000,
+    jitter = 0.2,
+    retryOn = () => true,
+    onRetry,
+    signal,
   } = options;
 
   let lastError: unknown;

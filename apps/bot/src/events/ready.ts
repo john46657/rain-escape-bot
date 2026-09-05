@@ -27,7 +27,9 @@ export const ready: EventHandler<Events.ClientReady> = {
           ownerId: guild.ownerId,
           memberCount: guild.memberCount,
         })
-        .catch((error: unknown) => services.log.error('Guild-Sync fehlgeschlagen', error, { guildId: guild.id }));
+        .catch((error: unknown) =>
+          services.log.error('Guild-Sync fehlgeschlagen', error, { guildId: guild.id }),
+        );
     }
 
     await services.publish('bot.ready', {

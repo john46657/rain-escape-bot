@@ -55,12 +55,12 @@ npm run dev:bot
 
 ### Voraussetzungen
 
-| Komponente | Version | Zweck |
-| --- | --- | --- |
-| Node.js | ≥ 22 | Laufzeit aller Dienste |
-| PostgreSQL | ≥ 15 | Primärdatenbank |
-| Redis | ≥ 7 | Cache, Rate Limits, verteilte Locks, Ereignisbus |
-| Docker | optional | Bereitstellung des gesamten Stacks |
+| Komponente | Version  | Zweck                                            |
+| ---------- | -------- | ------------------------------------------------ |
+| Node.js    | ≥ 22     | Laufzeit aller Dienste                           |
+| PostgreSQL | ≥ 15     | Primärdatenbank                                  |
+| Redis      | ≥ 7      | Cache, Rate Limits, verteilte Locks, Ereignisbus |
+| Docker     | optional | Bereitstellung des gesamten Stacks               |
 
 ### Discord-Anwendung vorbereiten
 
@@ -137,22 +137,22 @@ nexus/
 
 ## Funktionsumfang
 
-| Bereich | Umfang |
-| --- | --- |
-| **Moderation** | Ban/Tempban, Softban, Kick, Timeout, Warn (mit Ablauf), Notizen, Clear, Slowmode, Lock/Unlock, Nickname, Rollen, Fallhistorie mit ID `NX-xxxx-nnnnnn`, Kontextmenü |
-| **Sicherheit** | AutoMod (Spam, Flood, Caps, Invites, Links, Mentions, Scam, Phishing, Wortfilter), Anti-Nuke mit Entmachtung, Raid-Erkennung, Mindest-Kontoalter, Notfallmodus mit exakter Wiederherstellung, Vorfallverwaltung |
-| **Tickets** | Panel mit Auswahlmenü, Modal-Formular, Claim/Close/Reopen, Transkript als Datei, Limit pro Nutzer |
-| **Community** | Willkommen/Abschied mit Platzhaltern, Autorollen, Vorschläge mit Abstimmung, Umfragen, Starboard, AFK |
-| **Level** | XP pro Nachricht mit Cooldown, Rollen- und Münzbelohnungen, Rangliste, Administration |
-| **Wirtschaft** | Geldbeutel/Bank, Daily mit Streak, Work, Transfer, Shop, Inventar, Rangliste — alle Buchungen atomar und idempotent |
-| **Spiele** | Coinflip, Würfel, Slots, Schere-Stein-Papier, Magische Kugel (mit Einsatz) |
-| **Gewinnspiele** | Erstellung, Teilnahme per Button, automatische Ziehung, Reroll |
-| **Roblox** | Verifizierung per Einmalcode, Profilabruf, Gruppensynchronisation, Server-Monitor, Ankündigungen, Kick/Ban/Shutdown, plattformübergreifende Belohnungen |
-| **Automation** | Trigger → Bedingungen → Aktionen mit Rate-Limit und Fehlerzählung |
-| **Analytics** | Tagesaggregate, Dashboard-Diagramme, Zusammenfassung |
-| **Backups** | Snapshot von Rollen und Kanälen, nicht-destruktive Wiederherstellung |
-| **KI** *(optional)* | Frage-Antwort über eine OpenAI-kompatible API |
-| **Musik** *(Gerüst)* | Befehle vorhanden; benötigt einen Lavalink-Knoten |
+| Bereich              | Umfang                                                                                                                                                                                                          |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Moderation**       | Ban/Tempban, Softban, Kick, Timeout, Warn (mit Ablauf), Notizen, Clear, Slowmode, Lock/Unlock, Nickname, Rollen, Fallhistorie mit ID `NX-xxxx-nnnnnn`, Kontextmenü                                              |
+| **Sicherheit**       | AutoMod (Spam, Flood, Caps, Invites, Links, Mentions, Scam, Phishing, Wortfilter), Anti-Nuke mit Entmachtung, Raid-Erkennung, Mindest-Kontoalter, Notfallmodus mit exakter Wiederherstellung, Vorfallverwaltung |
+| **Tickets**          | Panel mit Auswahlmenü, Modal-Formular, Claim/Close/Reopen, Transkript als Datei, Limit pro Nutzer                                                                                                               |
+| **Community**        | Willkommen/Abschied mit Platzhaltern, Autorollen, Vorschläge mit Abstimmung, Umfragen, Starboard, AFK                                                                                                           |
+| **Level**            | XP pro Nachricht mit Cooldown, Rollen- und Münzbelohnungen, Rangliste, Administration                                                                                                                           |
+| **Wirtschaft**       | Geldbeutel/Bank, Daily mit Streak, Work, Transfer, Shop, Inventar, Rangliste — alle Buchungen atomar und idempotent                                                                                             |
+| **Spiele**           | Coinflip, Würfel, Slots, Schere-Stein-Papier, Magische Kugel (mit Einsatz)                                                                                                                                      |
+| **Gewinnspiele**     | Erstellung, Teilnahme per Button, automatische Ziehung, Reroll                                                                                                                                                  |
+| **Roblox**           | Verifizierung per Einmalcode, Profilabruf, Gruppensynchronisation, Server-Monitor, Ankündigungen, Kick/Ban/Shutdown, plattformübergreifende Belohnungen                                                         |
+| **Automation**       | Trigger → Bedingungen → Aktionen mit Rate-Limit und Fehlerzählung                                                                                                                                               |
+| **Analytics**        | Tagesaggregate, Dashboard-Diagramme, Zusammenfassung                                                                                                                                                            |
+| **Backups**          | Snapshot von Rollen und Kanälen, nicht-destruktive Wiederherstellung                                                                                                                                            |
+| **KI** _(optional)_  | Frage-Antwort über eine OpenAI-kompatible API                                                                                                                                                                   |
+| **Musik** _(Gerüst)_ | Befehle vorhanden; benötigt einen Lavalink-Knoten                                                                                                                                                               |
 
 ---
 

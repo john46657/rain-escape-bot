@@ -92,7 +92,10 @@ export interface PrismaLike {
   notification: ModelDelegate<Row>;
   dashboardSession: ModelDelegate<Row>;
 
-  $transaction<T>(fn: (tx: PrismaLike) => Promise<T>, options?: { timeout?: number; isolationLevel?: string }): Promise<T>;
+  $transaction<T>(
+    fn: (tx: PrismaLike) => Promise<T>,
+    options?: { timeout?: number; isolationLevel?: string },
+  ): Promise<T>;
   $queryRawUnsafe<T = unknown>(query: string, ...values: unknown[]): Promise<T>;
   $executeRawUnsafe(query: string, ...values: unknown[]): Promise<number>;
   $connect(): Promise<void>;
@@ -115,15 +118,20 @@ export function isNotFound(error: unknown): boolean {
 export async function loadPrismaClient(): Promise<PrismaLike> {
   let module: { PrismaClient: new (options?: Row) => PrismaLike };
   try {
-    module = (await import('@prisma/client')) as unknown as { PrismaClient: new (options?: Row) => PrismaLike };
+    module = (await import('@prisma/client')) as unknown as {
+      PrismaClient: new (options?: Row) => PrismaLike;
+    };
   } catch (error) {
     throw new Error(
       'Prisma-Client nicht gefunden. Bitte `npm run db:generate` ausfuehren ' +
-      '(oder DEV_MODE=true fuer den In-Memory-Modus setzen).',
+        '(oder DEV_MODE=true fuer den In-Memory-Modus setzen).',
       { cause: error },
     );
   }
   return new module.PrismaClient({
-    log: [{ emit: 'event', level: 'warn' }, { emit: 'event', level: 'error' }],
+    log: [
+      { emit: 'event', level: 'warn' },
+      { emit: 'event', level: 'error' },
+    ],
   });
 }

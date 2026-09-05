@@ -40,9 +40,11 @@ export class RedisCacheDriver implements CacheDriver {
     const args: Array<string | number> = [];
     if (options.ttlMs) args.push('PX', options.ttlMs);
     if (options.ifNotExists) args.push('NX');
-    const result = await (this.redis as unknown as {
-      set(key: string, value: string, ...args: Array<string | number>): Promise<string | null>;
-    }).set(key, value, ...args);
+    const result = await (
+      this.redis as unknown as {
+        set(key: string, value: string, ...args: Array<string | number>): Promise<string | null>;
+      }
+    ).set(key, value, ...args);
     return result === 'OK';
   }
 
@@ -57,7 +59,9 @@ export class RedisCacheDriver implements CacheDriver {
     return value;
   }
 
-  async ttl(key: string): Promise<number> { return this.redis.ttl(key); }
+  async ttl(key: string): Promise<number> {
+    return this.redis.ttl(key);
+  }
 
   /** SCAN statt KEYS: blockiert den Redis-Server nicht (Regel 42). */
   async keys(pattern: string): Promise<string[]> {
@@ -73,7 +77,12 @@ export class RedisCacheDriver implements CacheDriver {
 
   async tokenBucket(key: string, limit: number, windowMs: number, cost = 1): Promise<TokenBucketResult> {
     const [allowed, remaining, resetAfterMs] = (await this.redis.eval(
-      TOKEN_BUCKET_SCRIPT, 1, key, limit, windowMs, cost,
+      TOKEN_BUCKET_SCRIPT,
+      1,
+      key,
+      limit,
+      windowMs,
+      cost,
     )) as [number, number, number];
     return { allowed: allowed === 1, remaining: Math.max(0, remaining), resetAfterMs };
   }

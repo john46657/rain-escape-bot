@@ -4,11 +4,11 @@ Server-seitiges SDK fuer Roblox-Erlebnisse.
 
 ## Dateien
 
-| Datei | Zweck |
-| --- | --- |
-| `NexusCrypto.luau` | SHA-256 und HMAC-SHA256 in reinem Luau (inkl. Selbsttest) |
+| Datei              | Zweck                                                         |
+| ------------------ | ------------------------------------------------------------- |
+| `NexusCrypto.luau` | SHA-256 und HMAC-SHA256 in reinem Luau (inkl. Selbsttest)     |
 | `NexusClient.luau` | Signierte HTTP-Aufrufe mit Retry, Backoff und Circuit Breaker |
-| `NexusServer.luau` | Laufzeit: Heartbeat, Ereignisse, Kommandos, Verifizierung |
+| `NexusServer.luau` | Laufzeit: Heartbeat, Ereignisse, Kommandos, Verifizierung     |
 
 ## Einbau
 
@@ -29,11 +29,11 @@ NexusServer.start({
 
 ## Sicherheitsregeln
 
-* Alle Module laufen ausschliesslich auf dem Server. `NexusClient.new`
+- Alle Module laufen ausschliesslich auf dem Server. `NexusClient.new`
   bricht ab, wenn es in einem LocalScript ausgefuehrt wird.
-* Spieleridentitaeten stammen immer aus `Player`-Objekten des Servers,
+- Spieleridentitaeten stammen immer aus `Player`-Objekten des Servers,
   niemals aus Client-Nachrichten.
-* Das Secret darf weder repliziert noch geloggt werden.
+- Das Secret darf weder repliziert noch geloggt werden.
 
 ## Kompatibilitaet
 
